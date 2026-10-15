@@ -18,7 +18,13 @@ import {
   ChevronRight,
   ExternalLink,
   Building2,
-  DollarSign
+  DollarSign,
+  UploadCloud,
+  BookOpen,
+  Scale,
+  Send,
+  X,
+  Plus
 } from 'lucide-react';
 import AISidePanel from '../components/AISidePanel';
 
@@ -32,13 +38,31 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
   const [sortOrder, setSortOrder] = useState('desc');
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'grid'
 
-  // Financial Research Agent state
+  // Financial Research Agent & RAG state
   const [researchSymbol, setResearchSymbol] = useState('TCS');
   const [selectedStockForAI, setSelectedStockForAI] = useState('TCS');
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [researchData, setResearchData] = useState(null);
   const [researchLoading, setResearchLoading] = useState(false);
   const [researchError, setResearchError] = useState(null);
+  const [researchQuery, setResearchQuery] = useState('');
+  const [activeQuery, setActiveQuery] = useState('');
+
+  // Ingest Document Modal state
+  const [ingestModalOpen, setIngestModalOpen] = useState(false);
+  const [ingestForm, setIngestForm] = useState({
+    title: '',
+    doc_type: 'annual_report',
+    publisher: 'Company Investor Relations',
+    source_url: '',
+    publication_date: new Date().toISOString().split('T')[0],
+    page_or_section: '',
+    content: ''
+  });
+  const [uploadFile, setUploadFile] = useState(null);
+  const [ingestLoading, setIngestLoading] = useState(false);
+  const [ingestSuccess, setIngestSuccess] = useState(null);
+  const [ingestError, setIngestError] = useState(null);
 
   const filteredStocks = useMemo(() => {
     return stocks.filter((s) => {
@@ -75,17 +99,91 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
     }
   };
 
-  const fetchResearch = async (symbol) => {
+  const fetchResearch = async (symbol, query = null) => {
     setResearchLoading(true);
     setResearchError(null);
     try {
-      const res = await api.ai.financialAgent(symbol);
+      const res = await api.ai.financialAgent(symbol, query);
       setResearchData(res);
+      setActiveQuery(query || '');
     } catch (err) {
       console.error('Error fetching financial research:', err);
       setResearchError(err.message || 'Failed to generate financial research report.');
     } finally {
       setResearchLoading(false);
+    }
+  };
+
+  const handleQuerySubmit = (e) => {
+    if (e) e.preventDefault();
+    if (!researchQuery.trim()) return;
+    fetchResearch(researchSymbol, researchQuery.trim());
+  };
+
+  const handleSeedCorpus = async () => {
+    try {
+      await api.ai.seedDocuments();
+      fetchResearch(researchSymbol, researchQuery);
+    } catch (err) {
+      console.error('Failed to seed corpus:', err);
+    }
+  };
+
+  const handleIngestSubmit = async (e) => {
+    e.preventDefault();
+    setIngestLoading(true);
+    setIngestError(null);
+    setIngestSuccess(null);
+    try {
+      if (uploadFile) {
+        const formData = new FormData();
+        formData.append('file', uploadFile);
+        formData.append('symbol', researchSymbol);
+        formData.append('title', ingestForm.title || uploadFile.name);
+        formData.append('doc_type', ingestForm.doc_type);
+        formData.append('publisher', ingestForm.publisher);
+        if (ingestForm.source_url) formData.append('source_url', ingestForm.source_url);
+        if (ingestForm.publication_date) formData.append('publication_date', ingestForm.publication_date);
+        if (ingestForm.page_or_section) formData.append('page_or_section', ingestForm.page_or_section);
+
+        const res = await api.ai.uploadDocument(formData);
+        setIngestSuccess(res.message || 'Document uploaded and chunked successfully!');
+      } else {
+        if (!ingestForm.content.trim()) {
+          throw new Error('Please enter document content or select a file to upload.');
+        }
+        const res = await api.ai.ingestDocument({
+          symbol: researchSymbol,
+          title: ingestForm.title,
+          doc_type: ingestForm.doc_type,
+          publisher: ingestForm.publisher,
+          source_url: ingestForm.source_url || undefined,
+          publication_date: ingestForm.publication_date || undefined,
+          page_or_section: ingestForm.page_or_section || undefined,
+          content: ingestForm.content
+        });
+        setIngestSuccess(res.message || 'Document ingested and indexed successfully!');
+      }
+
+      setTimeout(() => {
+        setIngestModalOpen(false);
+        setUploadFile(null);
+        setIngestForm({
+          title: '',
+          doc_type: 'annual_report',
+          publisher: 'Company Investor Relations',
+          source_url: '',
+          publication_date: new Date().toISOString().split('T')[0],
+          page_or_section: '',
+          content: ''
+        });
+        setIngestSuccess(null);
+        fetchResearch(researchSymbol, researchQuery);
+      }, 1200);
+    } catch (err) {
+      setIngestError(err.message || 'Failed to ingest document.');
+    } finally {
+      setIngestLoading(false);
     }
   };
 
@@ -110,6 +208,10 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
   const scenarios = researchData?.scenarios || [];
   const sources = researchData?.sources || [];
   const risks = researchData?.risks_and_limitations || [];
+  const docCitations = sources.filter((s) => s.citation_id);
+  const ragSynthesis = supporting.rag_synthesis;
+  const conflictingEvidence = researchData?.conflicting_evidence || supporting.conflicting_evidence || [];
+  const retrievalStatus = researchData?.retrieval_status || supporting.retrieval_status;
 
   return (
     <div className="section-layout-wrapper" style={{ paddingBottom: '40px' }}>
@@ -395,38 +497,103 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
       {/* --- SUBTAB 2: FINANCIAL RESEARCH AGENT --- */}
       {activeTab === 'research' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* Target Stock Selector */}
-          <div className="glass-card" style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                Target Company:
-              </span>
-              <select
-                value={researchSymbol}
-                onChange={(e) => {
-                  setResearchSymbol(e.target.value);
-                  fetchResearch(e.target.value);
-                }}
-                className="input-field"
-                style={{ width: 'auto', minWidth: '240px', padding: '6px 12px', fontSize: '0.85rem' }}
-              >
-                {stocks.map((s) => (
-                  <option key={s.symbol} value={s.symbol}>
-                    {s.symbol} — {s.name} ({s.sector_name})
-                  </option>
-                ))}
-              </select>
+          {/* RAG Research Controls & Question Input */}
+          <div className="glass-card" style={{ padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  Target Company:
+                </span>
+                <select
+                  value={researchSymbol}
+                  onChange={(e) => {
+                    setResearchSymbol(e.target.value);
+                    fetchResearch(e.target.value, researchQuery);
+                  }}
+                  className="input-field"
+                  style={{ width: 'auto', minWidth: '240px', padding: '6px 12px', fontSize: '0.85rem' }}
+                >
+                  {stocks.map((s) => (
+                    <option key={s.symbol} value={s.symbol}>
+                      {s.symbol} — {s.name} ({s.sector_name})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button
+                  onClick={() => setIngestModalOpen(true)}
+                  className="btn btn-primary"
+                  style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <UploadCloud size={14} /> Ingest Financial Document
+                </button>
+                <button
+                  onClick={handleSeedCorpus}
+                  className="btn btn-secondary"
+                  title="Seed official sample filings for TCS, Reliance, Infosys & HDFC Bank"
+                  style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <BookOpen size={14} /> Load Authentic Disclosures
+                </button>
+                <button
+                  onClick={() => fetchResearch(researchSymbol, researchQuery)}
+                  disabled={researchLoading}
+                  className="btn btn-secondary"
+                  style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <RotateCcw size={14} className={researchLoading ? 'animate-spin' : ''} /> Refresh
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={() => fetchResearch(researchSymbol)}
-              disabled={researchLoading}
-              className="btn btn-secondary"
-              style={{ fontSize: '0.78rem', display: 'flex', alignItems: 'center', gap: '6px' }}
-            >
-              <RotateCcw size={14} className={researchLoading ? 'animate-spin' : ''} />
-              Re-Audit Fundamentals
-            </button>
+            {/* Natural Language Financial Question Input Form */}
+            <form onSubmit={handleQuerySubmit} style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ position: 'relative', flex: 1 }}>
+                <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  value={researchQuery}
+                  onChange={(e) => setResearchQuery(e.target.value)}
+                  placeholder={`Ask a specific question about ${researchSymbol}'s filings (e.g., 'What are the operating margins and AI pipeline?')`}
+                  className="input-field"
+                  style={{ paddingLeft: '38px', fontSize: '0.85rem' }}
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={researchLoading || !researchQuery.trim()}
+                className="btn btn-primary"
+                style={{ fontSize: '0.82rem', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Send size={14} /> Query RAG
+              </button>
+            </form>
+
+            {/* Quick Prompt Chips */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Quick Filings Focus:</span>
+              {[
+                'Operating margins and forward guidance',
+                'AI and cloud transformation pipeline',
+                'Balance sheet debt and capital allocation',
+                'Major business risks and disclosures'
+              ].map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    setResearchQuery(chip);
+                    fetchResearch(researchSymbol, chip);
+                  }}
+                  className="badge badge-outline"
+                  style={{ cursor: 'pointer', background: 'transparent', fontSize: '0.68rem', padding: '3px 8px' }}
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Loading */}
@@ -455,6 +622,97 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
           {/* Loaded Report */}
           {researchData && !researchLoading && (
             <>
+              {/* Document Corpus Status & Missing-Source Notification */}
+              {retrievalStatus === 'corpus_empty' && (
+                <div
+                  className="glass-card"
+                  style={{
+                    padding: '16px 20px',
+                    borderLeft: '4px solid #f59e0b',
+                    background: 'rgba(245, 158, 11, 0.05)',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    gap: '12px'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <AlertTriangle size={20} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                    <div>
+                      <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#f59e0b' }}>
+                        Document Corpus Empty for {researchSymbol}
+                      </div>
+                      <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                        No official corporate filings, earnings transcripts, or exchange notices have been ingested for {researchSymbol} yet.
+                        The quantitative fundamentals below reflect live/cached market data.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIngestModalOpen(true)}
+                    className="btn btn-secondary"
+                    style={{ fontSize: '0.74rem', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <UploadCloud size={14} /> Ingest {researchSymbol} Filing
+                  </button>
+                </div>
+              )}
+
+              {/* Contradictory Evidence & Conflict Detection Card */}
+              {conflictingEvidence && conflictingEvidence.length > 0 && (
+                <div className="glass-card" style={{ padding: '18px 20px', borderLeft: '4px solid #f59e0b', background: 'rgba(245, 158, 11, 0.04)' }}>
+                  <div style={{ fontSize: '0.92rem', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                    <Scale size={18} /> Disclosure Divergence Preserved (Conflicting Filing Statements)
+                  </div>
+                  <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+                    The RAG pipeline isolated diverging disclosures across different filing dates. Neither statement is suppressed:
+                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {conflictingEvidence.map((conf, cIdx) => (
+                      <div key={cIdx} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(245, 158, 11, 0.25)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        <div style={{ fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>{conf.topic}</div>
+                        <div>{conf.explanation}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* RAG Evidence Grounded Synthesis Card */}
+              {ragSynthesis && (
+                <div
+                  className="glass-card"
+                  style={{
+                    padding: '20px',
+                    borderLeft: '4px solid var(--accent-blue)',
+                    background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Sparkles size={18} style={{ color: 'var(--accent-blue)' }} />
+                      <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-primary)' }}>
+                        Document-Grounded Research Synthesis
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <span className="badge badge-outline" style={{ fontSize: '0.68rem', borderColor: 'var(--accent-blue)', color: 'var(--accent-blue)' }}>
+                        {supporting.llm_synthesis_status === 'gemini_synthesized' ? '✓ Google Gemini Grounded' : '✓ Deterministic Grounded'}
+                      </span>
+                      {activeQuery && (
+                        <span className="badge badge-outline" style={{ fontSize: '0.68rem' }}>
+                          Query: "{activeQuery.length > 25 ? activeQuery.slice(0, 25) + '...' : activeQuery}"
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', lineHeight: 1.65, whiteSpace: 'pre-line' }}>
+                    {ragSynthesis}
+                  </div>
+                </div>
+              )}
+
               {/* Executive Summary Card */}
               <div
                 className="glass-card"
@@ -672,37 +930,124 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                 </div>
               </div>
 
-              {/* Corporate Announcements & Filings */}
-              {announcements.length > 0 && (
-                <div className="glass-card" style={{ padding: '20px' }}>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-                    <ExternalLink size={18} style={{ color: 'var(--accent-blue)' }} /> Exchange Filings & Corporate Announcements
+              {/* Verifiable Documentary Evidence & Filings */}
+              <div className="glass-card" style={{ padding: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', flexWrap: 'wrap', gap: '8px' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <BookOpen size={18} style={{ color: 'var(--accent-blue)' }} /> Verifiable Documentary Evidence & Filings ({docCitations.length})
                   </h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    {announcements.map((ann, idx) => (
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span className="badge badge-outline" style={{ fontSize: '0.68rem' }}>
+                      {supporting.document_corpus_count || 0} Ingested in Corpus
+                    </span>
+                    <button
+                      onClick={() => setIngestModalOpen(true)}
+                      className="btn btn-secondary"
+                      style={{ fontSize: '0.72rem', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      <Plus size={12} /> Add Filing
+                    </button>
+                  </div>
+                </div>
+
+                {docCitations.length === 0 ? (
+                  <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      No retrieved filing passages for this query or no documents have been ingested for {researchSymbol} yet.
+                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '12px' }}>
+                      <button
+                        onClick={handleSeedCorpus}
+                        className="btn btn-secondary"
+                        style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                      >
+                        <BookOpen size={13} /> Load Sample Filings (TCS/RIL/INFY)
+                      </button>
+                      <button
+                        onClick={() => setIngestModalOpen(true)}
+                        className="btn btn-primary"
+                        style={{ fontSize: '0.75rem', padding: '6px 12px' }}
+                      >
+                        <UploadCloud size={13} /> Ingest {researchSymbol} Filing
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    {docCitations.map((cit, idx) => (
                       <div
                         key={idx}
                         style={{
-                          padding: '12px 14px',
+                          padding: '16px',
                           borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(15, 23, 42, 0.5)',
-                          border: '1px solid var(--border-subtle)',
+                          background: 'rgba(15, 23, 42, 0.6)',
+                          border: '1px solid rgba(59, 130, 246, 0.25)',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '4px'
+                          gap: '8px'
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '0.85rem', fontWeight: 700, color: 'var(--text-primary)' }}>{ann.title}</span>
-                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{ann.date}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', fontWeight: 800, fontSize: '0.72rem' }}>
+                              {cit.citation_id}
+                            </span>
+                            <span style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+                              {cit.document_title}
+                            </span>
+                            {cit.source_url && (
+                              <a
+                                href={cit.source_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.72rem', color: 'var(--accent-blue)', textDecoration: 'none' }}
+                              >
+                                View Source <ExternalLink size={12} />
+                              </a>
+                            )}
+                          </div>
+
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            {cit.relevance_score !== null && cit.relevance_score !== undefined && (
+                              <span className="badge bg-gain" style={{ fontSize: '0.65rem' }}>
+                                Relevance: {Math.round(cit.relevance_score * 100)}%
+                              </span>
+                            )}
+                            {cit.publication_date && (
+                              <span className="badge badge-outline" style={{ fontSize: '0.65rem' }}>
+                                {cit.publication_date}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{ann.summary}</p>
-                        <span style={{ fontSize: '0.72rem', color: 'var(--accent-blue)' }}>Source: {ann.source}</span>
+
+                        <div style={{ display: 'flex', gap: '16px', fontSize: '0.74rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                          <span>Publisher: <strong style={{ color: 'var(--text-secondary)' }}>{cit.publisher}</strong></span>
+                          <span>Section / Reference: <strong style={{ color: 'var(--text-secondary)' }}>{cit.page_or_section || 'Filing Disclosure'}</strong></span>
+                        </div>
+
+                        {cit.passage && (
+                          <blockquote
+                            style={{
+                              margin: '4px 0 0 0',
+                              padding: '10px 14px',
+                              borderRadius: 'var(--radius-sm)',
+                              background: 'rgba(0, 0, 0, 0.35)',
+                              borderLeft: '3px solid var(--accent-blue)',
+                              fontSize: '0.8rem',
+                              color: 'var(--text-secondary)',
+                              lineHeight: 1.6,
+                              fontStyle: 'normal'
+                            }}
+                          >
+                            "{cit.passage}"
+                          </blockquote>
+                        )}
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
 
               {/* Model-Estimated Scenarios */}
               {scenarios.length > 0 && (
@@ -823,6 +1168,241 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                 if (onSelectStock) onSelectStock(sym);
               }}
             />
+          </div>
+        </div>
+      )}
+
+      {/* --- INGEST DOCUMENT MODAL --- */}
+      {ingestModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '20px'
+          }}
+          onClick={() => setIngestModalOpen(false)}
+        >
+          <div
+            className="glass-card"
+            style={{
+              width: '100%',
+              maxWidth: '620px',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              padding: '24px',
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <UploadCloud size={22} style={{ color: 'var(--accent-blue)' }} />
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Ingest Financial Document</h3>
+                  <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                    Add official corporate filing, annual report, or transcript for {researchSymbol}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIngestModalOpen(false)}
+                className="btn btn-secondary"
+                style={{ padding: '6px', borderRadius: '50%' }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {ingestSuccess && (
+              <div style={{ padding: '12px 16px', marginBottom: '14px', borderRadius: 'var(--radius-sm)', background: 'rgba(0, 208, 156, 0.15)', border: '1px solid var(--gain-color)', color: 'var(--gain-color)', fontSize: '0.85rem' }}>
+                ✓ {ingestSuccess}
+              </div>
+            )}
+
+            {ingestError && (
+              <div style={{ padding: '12px 16px', marginBottom: '14px', borderRadius: 'var(--radius-sm)', background: 'rgba(235, 91, 60, 0.15)', border: '1px solid var(--loss-color)', color: 'var(--loss-color)', fontSize: '0.85rem' }}>
+                ✕ {ingestError}
+              </div>
+            )}
+
+            <form onSubmit={handleIngestSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Target Stock Symbol
+                  </label>
+                  <select
+                    value={researchSymbol}
+                    onChange={(e) => setResearchSymbol(e.target.value)}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  >
+                    {stocks.map((s) => (
+                      <option key={s.symbol} value={s.symbol}>{s.symbol} — {s.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Document Type
+                  </label>
+                  <select
+                    value={ingestForm.doc_type}
+                    onChange={(e) => setIngestForm({ ...ingestForm, doc_type: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  >
+                    <option value="annual_report">Annual Report (Audited)</option>
+                    <option value="earnings_transcript">Earnings Call Transcript</option>
+                    <option value="exchange_filing">Exchange / SEBI Filing</option>
+                    <option value="announcement">Corporate Announcement</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                  Document Title *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. FY24 Audited Financial Statement & SEBI Listing Disclosure"
+                  value={ingestForm.title}
+                  onChange={(e) => setIngestForm({ ...ingestForm, title: e.target.value })}
+                  className="input-field"
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Publisher / Source *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. NSE India / Company IR"
+                    value={ingestForm.publisher}
+                    onChange={(e) => setIngestForm({ ...ingestForm, publisher: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Publication Date
+                  </label>
+                  <input
+                    type="date"
+                    value={ingestForm.publication_date}
+                    onChange={(e) => setIngestForm({ ...ingestForm, publication_date: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Source URL (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://www.nseindia.com/..."
+                    value={ingestForm.source_url}
+                    onChange={(e) => setIngestForm({ ...ingestForm, source_url: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Page / Section Reference
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Page 14, Management Remarks"
+                    value={ingestForm.page_or_section}
+                    onChange={(e) => setIngestForm({ ...ingestForm, page_or_section: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              </div>
+
+              {/* Upload File vs Paste Text */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                  Upload Document File (PDF, TXT, HTML, MD)
+                </label>
+                <input
+                  type="file"
+                  accept=".pdf,.txt,.html,.htm,.md"
+                  onChange={(e) => setUploadFile(e.target.files[0] || null)}
+                  className="input-field"
+                  style={{ width: '100%', padding: '8px' }}
+                />
+              </div>
+
+              {!uploadFile && (
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '4px', fontWeight: 600 }}>
+                    Or Paste Document Content / Regulatory Text *
+                  </label>
+                  <textarea
+                    rows={5}
+                    placeholder="Paste official statement text, earnings transcript excerpts, or regulatory disclosures here..."
+                    value={ingestForm.content}
+                    onChange={(e) => setIngestForm({ ...ingestForm, content: e.target.value })}
+                    className="input-field"
+                    style={{ width: '100%', resize: 'vertical', fontSize: '0.8rem', lineHeight: 1.5 }}
+                  />
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--border-subtle)', paddingTop: '14px' }}>
+                <button
+                  type="button"
+                  onClick={() => setIngestModalOpen(false)}
+                  className="btn btn-secondary"
+                  disabled={ingestLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={ingestLoading}
+                  className="btn btn-primary"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  {ingestLoading ? (
+                    <>
+                      <RotateCcw size={14} className="animate-spin" /> Ingesting & Chunking...
+                    </>
+                  ) : (
+                    <>
+                      <UploadCloud size={14} /> Ingest & Index Document
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from app.market_data.service import market_data_service
 from app.market_data.symbols import SYMBOL_MAP
+from app.market_data.news_service import news_sentiment_service
 from app.ai.schemas import AgentResponse, Citation, Scenario
 
 class MarketAnalysisAgent:
@@ -171,15 +172,25 @@ class MarketAnalysisAgent:
                 )
             ]
 
-        # 8. Confidence Assessment
+        # 8. Genuine Financial News Sentiment Analysis (PS 04 Task 2)
+        sentiment_res = news_sentiment_service.get_stock_sentiment(symbol, meta["name"])
+        sentiment_dict = sentiment_res.model_dump()
+
+        # 9. Confidence Assessment
         confidence_factors = [
             f"Historical daily bars analyzed: {len(history)} sessions",
             f"Quote freshness: {quote.data_status}",
             "Technical indicator convergence across RSI and Dual Moving Averages"
         ]
+        if sentiment_res.classification != "Unavailable":
+            confidence_factors.append(
+                f"News Sentiment: {sentiment_res.classification} ({sentiment_res.headlines_analyzed} headlines, {sentiment_res.evidence_quality} evidence)"
+            )
+        else:
+            confidence_factors.append("News Sentiment: Unavailable from public feeds")
         confidence_score = 0.88 if len(history) >= 100 else 0.65
 
-        # 9. Key Findings
+        # 10. Key Findings
         price_str = f"₹{current_price:,.2f}" if current_price is not None else "Price unavailable"
         chg_str = f" ({change_pct:+.2f}%)" if change_pct is not None else ""
         key_findings = [
@@ -201,11 +212,57 @@ class MarketAnalysisAgent:
         if volatility_30d:
             key_findings.append(f"Annualized 30-day volatility measured at {volatility_30d}%.")
 
+        # News Sentiment Findings & Disagreement Detection
+        if sentiment_res.classification != "Unavailable":
+            score_str = f"{sentiment_res.overall_score:+.2f}" if sentiment_res.overall_score is not None else "N/A"
+            key_findings.append(
+                f"Financial News Sentiment: {sentiment_res.classification} (Score: {score_str}, Evidence: {sentiment_res.evidence_quality}) "
+                f"across {sentiment_res.headlines_analyzed} recent headlines from {sentiment_res.provider}."
+            )
+            # Surface explicit disagreements between technical momentum and news sentiment
+            if "Bullish" in overall_signal and sentiment_res.classification == "Negative":
+                key_findings.append(
+                    "Signal Divergence Detected: Technical momentum is Bullish, but recent financial news headlines reflect Negative sentiment."
+                )
+            elif "Bearish" in overall_signal and sentiment_res.classification == "Positive":
+                key_findings.append(
+                    "Signal Divergence Detected: Technical momentum is Bearish, but recent financial news headlines reflect Positive sentiment."
+                )
+        else:
+            key_findings.append(
+                "Financial News Sentiment: Unavailable (insufficient recent news headlines from external public feeds; quantitative analysis unaffected)."
+            )
+
         missing_data = []
         if not sma200:
             missing_data.append("200-day SMA requires at least 200 trading days of continuous history.")
         if not support_level or not resistance_level:
             missing_data.append("Support and resistance calculations require at least 20 historical sessions.")
+
+        sources = [
+            Citation(source=f"Yahoo Finance ({meta['provider_symbol']})", metric="Latest Quote", value=current_price, timestamp=quote.fetched_at),
+            Citation(source="VibeFinance Quantitative Indicator Engine", metric="RSI & Moving Averages", value=rsi, timestamp=now_iso),
+            Citation(source="VibeFinance Volatility Model", metric="30D Annualized Volatility", value=volatility_30d, timestamp=now_iso)
+        ]
+        # Append verifiable news headline citations
+        for h in sentiment_res.headlines:
+            sources.append(
+                Citation(
+                    source=f"News: {h.publisher}",
+                    metric="Headline Polarity",
+                    value=h.sentiment_score,
+                    timestamp=h.published_at or now_iso,
+                    source_url=h.url,
+                    publisher=h.publisher,
+                    publication_date=h.published_at,
+                    passage=h.title,
+                    relevance_score=h.sentiment_confidence
+                )
+            )
+
+        all_warnings = [quote.warnings] if quote.warnings else []
+        if sentiment_res.warnings:
+            all_warnings.extend(sentiment_res.warnings)
 
         price_disp = f"₹{current_price:,.2f}" if current_price is not None else "N/A"
 
@@ -234,17 +291,16 @@ class MarketAnalysisAgent:
                 "volume_status": volume_status,
                 "volatility_30d_pct": volatility_30d,
                 "support_level": support_level,
-                "resistance_level": resistance_level
+                "resistance_level": resistance_level,
+                "news_sentiment": sentiment_dict
             },
             scenarios=scenarios,
-            sources=[
-                Citation(source=f"Yahoo Finance ({meta['provider_symbol']})", metric="Latest Quote", value=current_price, timestamp=quote.fetched_at),
-                Citation(source="VibeFinance Quantitative Indicator Engine", metric="RSI & Moving Averages", value=rsi, timestamp=now_iso),
-                Citation(source="VibeFinance Volatility Model", metric="30D Annualized Volatility", value=volatility_30d, timestamp=now_iso)
-            ],
+            sources=sources,
+            citations=sources,
             risks_and_limitations=[
                 "yfinance is a development data adapter subject to non-realtime delays and rate limits.",
                 "Moving averages and support/resistance are historical mathematical estimations, not guaranteed price barriers.",
+                "News sentiment is a linguistic polarity measurement of public headlines, not a calibrated price direction forecast.",
                 "Surge in unexpected macroeconomic news can invalidate technical setups."
             ],
             timestamp=now_iso,
@@ -255,8 +311,9 @@ class MarketAnalysisAgent:
                 "factors": confidence_factors
             },
             missing_data=missing_data,
-            warnings=[quote.warnings] if quote.warnings else [],
-            disclaimer="Educational technical market intelligence. Not SEBI-registered financial advice. Does not constitute a buy, sell, or hold recommendation."
+            warnings=all_warnings,
+            disclaimer="Educational technical market intelligence. Not SEBI-registered financial advice. Does not constitute a buy, sell, or hold recommendation.",
+            news_sentiment=sentiment_dict
         )
 
     def _analyze_macro_market(self) -> AgentResponse:

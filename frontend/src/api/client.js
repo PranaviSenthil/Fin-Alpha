@@ -202,8 +202,8 @@ class ApiClient {
     // Specialized Agents
     marketAgent: (symbol = null) =>
       this.request(`/ai/agents/market${symbol ? `?symbol=${encodeURIComponent(symbol)}` : ''}`),
-    financialAgent: (symbol) =>
-      this.request(`/ai/agents/financial/${encodeURIComponent(symbol)}`),
+    financialAgent: (symbol, query = null) =>
+      this.request(`/ai/agents/financial/${encodeURIComponent(symbol)}${query ? `?query=${encodeURIComponent(query)}` : ''}`),
     portfolioAgent: () =>
       this.request('/ai/agents/portfolio'),
     behaviorAgent: () =>
@@ -217,6 +217,46 @@ class ApiClient {
           requested_agents: requested_agents || undefined
         }),
       }),
+
+    // RAG Document Corpus Endpoints
+    listDocuments: (symbol = null) =>
+      this.request(`/ai/documents${symbol ? `?symbol=${encodeURIComponent(symbol)}` : ''}`),
+    getDocument: (docId) =>
+      this.request(`/ai/documents/${encodeURIComponent(docId)}`),
+    deleteDocument: (docId) =>
+      this.request(`/ai/documents/${encodeURIComponent(docId)}`, { method: 'DELETE' }),
+    searchDocuments: (symbol, query, topK = 4) =>
+      this.request('/ai/documents/search', {
+        method: 'POST',
+        body: JSON.stringify({ symbol, query, top_k: topK })
+      }),
+    ingestDocument: (data) =>
+      this.request('/ai/documents/ingest', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      }),
+    seedDocuments: () =>
+      this.request('/ai/documents/seed', { method: 'POST' }),
+    observabilityMetrics: () =>
+      this.request('/ai/observability/metrics'),
+    uploadDocument: async (formData) => {
+      const url = `${API_BASE}/ai/documents/upload`;
+      const headers = {};
+      const token = localStorage.getItem('vibefinance_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: formData
+      });
+      const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.detail || data?.message || `Upload Error ${response.status}`);
+      }
+      return data;
+    },
 
     chat: (query, symbol = null, conversationHistory = [], sessionId = null, section = null) =>
       this.request('/ai/chat', {

@@ -185,7 +185,7 @@ class MarketDataService:
                     currency=row["currency"] or "INR",
                     change=change,
                     change_pct=change_pct,
-                    source=row["source"] or self.source_label,
+                    source=row["source"] or settings.MARKET_DATA_PROVIDER,
                     market_timestamp=row["market_timestamp"],
                     fetched_at=row["fetched_at"],
                     data_status="stale" if is_stale else "fresh",
@@ -199,7 +199,7 @@ class MarketDataService:
                     price=None,
                     fetched_at=now.isoformat(),
                     data_status="unavailable",
-                    source=self.source_label,
+                    source=settings.MARKET_DATA_PROVIDER,
                     warnings="Quote awaiting initial refresh"
                 ))
         return quotes

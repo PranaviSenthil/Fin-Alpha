@@ -405,4 +405,75 @@ class GeminiService:
             "pool_status": self.key_manager.get_pool_status()
         }
 
+    def synthesize_financial_rag(
+        self,
+        company_name: str,
+        symbol: str,
+        query: str,
+        deterministic_metrics: Dict[str, Any],
+        retrieved_passages: List[Dict[str, Any]],
+        max_tokens: int = 1200
+    ) -> Dict[str, Any]:
+        """
+        Synthesize documentary evidence retrieved from corporate filings & transcripts
+        with deterministic quantitative fundamentals.
+        Instructs the LLM to ground all statements in verified citations.
+        """
+        self.key_manager.refresh_keys()
+        pool_status = self.key_manager.get_pool_status()
+        if not pool_status.get("has_usable_key"):
+            return {
+                "success": False,
+                "error": "Google Gemini API key is unconfigured or cooling down.",
+                "unconfigured": True
+            }
+
+        # Build evidence grounding prompt
+        user_content = (
+            f"COMPANY: {company_name} ({symbol})\n"
+            f"RESEARCH QUERY: {query}\n\n"
+            f"QUANTITATIVE FUNDAMENTALS (Deterministic Verified Calculations):\n"
+            f"- Price: ₹{deterministic_metrics.get('price', 'N/A')}\n"
+            f"- Trailing P/E: {deterministic_metrics.get('pe_ratio', 'N/A')}x\n"
+            f"- Price to Book: {deterministic_metrics.get('pb_ratio', 'N/A')}x\n"
+            f"- Return on Equity: {deterministic_metrics.get('roe', 'N/A')}%\n"
+            f"- Debt-to-Equity: {deterministic_metrics.get('debt_to_equity', 'N/A')}x ({deterministic_metrics.get('debt_classification', 'N/A')})\n"
+            f"- Market Cap: ₹{deterministic_metrics.get('market_cap_cr', 'N/A')} Cr\n\n"
+            f"RETRIEVED DOCUMENTARY EVIDENCE PASSAGES (Official Filings & Disclosures):\n"
+        )
+
+        for p in retrieved_passages:
+            c_id = p.get('citation_id', 'CIT')
+            doc_title = p.get('document_title', 'Corporate Disclosure')
+            doc_type = p.get('doc_type', 'filing')
+            publisher = p.get('publisher', 'Official Disclosures')
+            pub_date = p.get('publication_date') or 'N/A'
+            page_sec = p.get('page_or_section') or 'General'
+            passage = p.get('passage') or ''
+            user_content += (
+                f"\n--- CITATION: [{c_id}] ---\n"
+                f"Document: {doc_title}\n"
+                f"Type: {doc_type} | Publisher: {publisher} | Date: {pub_date}\n"
+                f"Section/Page: {page_sec}\n"
+                f"Passage Excerpt: \"{passage}\"\n"
+            )
+
+        user_content += (
+            "\nTASK:\n"
+            "Synthesize these retrieved documentary passages in response to the research query. "
+            "Ground every finding in the passages using [CIT-...] citation tags. "
+            "Differentiate verified historical filing disclosures from forward-looking management commentary. "
+            "If the evidence contains conflicting statements or cautious disclosures, present both. "
+            "If certain information is not in the passages, explicitly state that it is unavailable in the document corpus."
+        )
+
+        messages = [{"role": "user", "content": user_content}]
+        return self.chat(
+            messages=messages,
+            stock_context={"name": company_name, "symbol": symbol, "pe_ratio": deterministic_metrics.get("pe_ratio")},
+            max_tokens=max_tokens,
+            temperature=0.2
+        )
+
+
 gemini_service = GeminiService()

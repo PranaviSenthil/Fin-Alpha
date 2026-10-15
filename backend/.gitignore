@@ -1,15 +1,25 @@
-# Ignore environment variables
+# Environment variables & secrets
 .env
 .env.*
 !.env.example
 
-# Python cache
+# Python bytecode & caches
 __pycache__/
-*.pyc
-
-# Pytest cache
+*.py[cod]
+*$py.class
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# SQLite WAL
+# Local SQLite databases & runtime journals
+*.db
 *.db-shm
 *.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+
+# Runtime logs
+*.log

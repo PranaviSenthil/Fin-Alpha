@@ -1,3 +1,9 @@
+# Environment variables & local overrides
+.env
+.env.*
+!.env.example
+*.local
+
 # Logs
 logs
 *.log
@@ -7,10 +13,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build output
 node_modules
 dist
 dist-ssr
-*.local
+.vite/
+.eslintcache
+.oxlintcache
 
 # Editor directories and files
 .vscode/*

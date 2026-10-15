@@ -9,7 +9,10 @@ import {
   RotateCcw,
   CheckCircle2,
   ChevronRight,
-  Info
+  Info,
+  Newspaper,
+  ExternalLink,
+  AlertCircle
 } from 'lucide-react';
 import AISidePanel from '../components/AISidePanel';
 
@@ -56,6 +59,15 @@ export default function MarketsView({ onSelectStock }) {
   const supporting = agentData?.supporting_data || {};
   const scenarios = agentData?.scenarios || [];
   const risks = agentData?.risks_and_limitations || [];
+  const sentiment = agentData?.news_sentiment || supporting.news_sentiment;
+  const isSignalDivergent =
+    sentiment &&
+    sentiment.classification !== 'Unavailable' &&
+    sentiment.classification !== 'Insufficient Evidence' &&
+    (
+      ((agentData?.signal || '').includes('Bullish') && sentiment.classification === 'Negative') ||
+      ((agentData?.signal || '').includes('Bearish') && sentiment.classification === 'Positive')
+    );
 
   return (
     <div className="section-layout-wrapper" style={{ paddingBottom: '40px' }}>
@@ -248,6 +260,247 @@ export default function MarketsView({ onSelectStock }) {
               </div>
             </div>
           )}
+
+          {/* Financial News Sentiment Analysis Panel (PS 04 Task 2) */}
+          <div className="glass-card" style={{ padding: '20px', borderTop: '3px solid var(--accent-blue)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Newspaper size={19} style={{ color: 'var(--accent-blue)' }} />
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>
+                  Financial News Sentiment Analysis
+                </h3>
+                {sentiment?.classification && (
+                  <span
+                    className={`badge ${
+                      sentiment.classification === 'Positive' ? 'bg-gain' :
+                      sentiment.classification === 'Negative' ? 'bg-loss' :
+                      sentiment.classification === 'Neutral' ? 'badge-outline' :
+                      sentiment.classification === 'Insufficient Evidence' ? 'bg-warning' :
+                      'badge-outline'
+                    }`}
+                    style={{ fontSize: '0.75rem', fontWeight: 700 }}
+                  >
+                    {sentiment.classification}
+                  </span>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {sentiment?.provider && sentiment.provider !== 'None' && (
+                  <span className="badge badge-outline" style={{ fontSize: '0.7rem' }}>
+                    Provider: {sentiment.provider}
+                  </span>
+                )}
+                {sentiment?.freshness_status && (
+                  <span className={`badge ${sentiment.freshness_status === 'fresh' ? 'badge-fresh' : 'badge-outline'}`} style={{ fontSize: '0.7rem' }}>
+                    {sentiment.freshness_status === 'cached' ? 'Cached (15m)' : sentiment.freshness_status === 'fresh' ? 'Fresh News' : sentiment.freshness_status}
+                  </span>
+                )}
+                {sentiment?.evidence_quality && sentiment.evidence_quality !== 'Unavailable' && (
+                  <span className="badge badge-outline" style={{ fontSize: '0.7rem', color: sentiment.evidence_quality === 'High' ? 'var(--gain-color)' : 'var(--text-secondary)' }}>
+                    Evidence: {sentiment.evidence_quality}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* If Sentiment is completely unavailable */}
+            {(!sentiment || sentiment.classification === 'Unavailable' || (sentiment.headlines_analyzed === 0 && (!sentiment.headlines || sentiment.headlines.length === 0))) ? (
+              <div
+                style={{
+                  padding: '16px',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'rgba(15, 23, 42, 0.6)',
+                  border: '1px dashed var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}
+              >
+                <AlertCircle size={20} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                    News Sentiment Currently Unavailable
+                  </div>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '2px' }}>
+                    No recent verifiable news headlines returned from public financial feeds for this ticker. Quantitative market indicators and momentum matrix remain 100% operational.
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div>
+                {/* Metric Summary Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '14px' }}>
+                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Aggregate Score
+                    </div>
+                    <div className="font-mono" style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '2px', color: (sentiment.overall_score || 0) >= 0.05 ? 'var(--gain-color)' : (sentiment.overall_score || 0) <= -0.05 ? 'var(--loss-color)' : 'var(--text-primary)' }}>
+                      {sentiment.overall_score !== null && sentiment.overall_score !== undefined
+                        ? `${sentiment.overall_score > 0 ? '+' : ''}${sentiment.overall_score.toFixed(2)}`
+                        : 'N/A'}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Range: -1.0 to +1.0</div>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Headlines Analyzed
+                    </div>
+                    <div className="font-mono" style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '2px', color: 'var(--text-primary)' }}>
+                      {sentiment.headlines_analyzed}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Deduplicated articles</div>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Polarity Distribution
+                    </div>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, marginTop: '6px', display: 'flex', gap: '8px' }}>
+                      <span style={{ color: 'var(--gain-color)' }}>{sentiment.positive_count} Pos</span>
+                      <span style={{ color: 'var(--text-muted)' }}>·</span>
+                      <span style={{ color: 'var(--text-secondary)' }}>{sentiment.neutral_count} Neu</span>
+                      <span style={{ color: 'var(--text-muted)' }}>·</span>
+                      <span style={{ color: 'var(--loss-color)' }}>{sentiment.negative_count} Neg</span>
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>VADER valence threshold ±0.05</div>
+                  </div>
+
+                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                      Confidence Quality
+                    </div>
+                    <div className="font-mono" style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '2px', color: 'var(--accent-blue)' }}>
+                      {Math.round((sentiment.confidence_score || 0) * 100)}%
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                      {sentiment.evidence_quality}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Explicit Signal Divergence Alert */}
+                {isSignalDivergent && (
+                  <div
+                    style={{
+                      padding: '12px 16px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'rgba(245, 158, 11, 0.08)',
+                      border: '1px solid rgba(245, 158, 11, 0.35)',
+                      marginBottom: '14px',
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '10px'
+                    }}
+                  >
+                    <ShieldAlert size={18} style={{ color: 'var(--warning-color)', flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      <strong style={{ color: 'var(--warning-color)' }}>Momentum vs. News Divergence Detected:</strong>{' '}
+                      Technical indicators evaluate momentum as <strong>{agentData?.signal}</strong>, whereas verified news sentiment is <strong>{sentiment.classification} ({sentiment.overall_score > 0 ? '+' : ''}{sentiment.overall_score?.toFixed(2)})</strong>.
+                      The agent preserves this disagreement rather than forcing an artificial consensus.
+                    </div>
+                  </div>
+                )}
+
+                {/* Insufficient Evidence Warning Banner */}
+                {sentiment.classification === 'Insufficient Evidence' && (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'rgba(59, 130, 246, 0.08)',
+                      border: '1px solid rgba(59, 130, 246, 0.25)',
+                      marginBottom: '14px',
+                      fontSize: '0.78rem',
+                      color: 'var(--text-secondary)'
+                    }}
+                  >
+                    <Info size={14} style={{ color: 'var(--accent-blue)', display: 'inline', marginRight: '6px', verticalAlign: '-2px' }} />
+                    <strong>Insufficient Evidence Notice:</strong> Limited headline volume ({sentiment.headlines_analyzed} article). Score should be treated as indicative; rely primarily on quantitative indicators.
+                  </div>
+                )}
+
+                {/* Verified Recent Headlines List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Recent Scored Headlines ({sentiment.headlines?.length || 0})
+                  </div>
+                  {sentiment.headlines?.map((h, hIdx) => {
+                    const isPos = (h.sentiment_score || 0) >= 0.05;
+                    const isNeg = (h.sentiment_score || 0) <= -0.05;
+                    return (
+                      <div
+                        key={hIdx}
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: 'var(--radius-sm)',
+                          background: 'rgba(15, 23, 42, 0.45)',
+                          border: '1px solid var(--border-subtle)',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '12px',
+                          flexWrap: 'wrap'
+                        }}
+                      >
+                        <div style={{ flex: 1, minWidth: '220px' }}>
+                          <a
+                            href={h.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              color: 'var(--text-primary)',
+                              textDecoration: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px'
+                            }}
+                            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--accent-blue)'}
+                            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
+                          >
+                            <span>{h.title}</span>
+                            <ExternalLink size={12} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} />
+                          </a>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '4px', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                            <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{h.publisher}</span>
+                            {h.published_at && (
+                              <span>• {new Date(h.published_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span
+                            className={`badge ${isPos ? 'bg-gain' : isNeg ? 'bg-loss' : 'badge-outline'}`}
+                            style={{ fontSize: '0.72rem', fontWeight: 700 }}
+                          >
+                            {h.sentiment_score !== null && h.sentiment_score !== undefined
+                              ? `${h.sentiment_score > 0 ? '+' : ''}${h.sentiment_score.toFixed(2)}`
+                              : '0.00'} {h.sentiment_label || 'Neutral'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Footer with Metadata */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  <span>
+                    Scoring Engine: Loughran-McDonald & VADER Normalized ([-1.0, +1.0])
+                  </span>
+                  {sentiment.retrieved_at && (
+                    <span>
+                      Retrieved: {new Date(sentiment.retrieved_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Quantitative Market Evidence */}
           <div className="glass-card" style={{ padding: '20px' }}>

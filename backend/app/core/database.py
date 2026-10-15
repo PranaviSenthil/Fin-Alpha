@@ -286,6 +286,40 @@ def init_db():
             created_at TEXT NOT NULL
         );
         """)
+
+        # 18. Financial Documents (RAG Ingestion Corpus)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS financial_documents (
+            id TEXT PRIMARY KEY,
+            symbol TEXT NOT NULL,
+            company_name TEXT NOT NULL,
+            title TEXT NOT NULL,
+            doc_type TEXT NOT NULL,
+            publisher TEXT NOT NULL,
+            source_url TEXT,
+            publication_date TEXT,
+            content_hash TEXT UNIQUE NOT NULL,
+            raw_text TEXT NOT NULL,
+            chunk_count INTEGER DEFAULT 0,
+            metadata_json TEXT,
+            ingested_at TEXT NOT NULL
+        );
+        """)
+
+        # 19. Financial Document Chunks (RAG Retrieval Passages)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS financial_document_chunks (
+            id TEXT PRIMARY KEY,
+            doc_id TEXT NOT NULL REFERENCES financial_documents(id) ON DELETE CASCADE,
+            symbol TEXT NOT NULL,
+            company_name TEXT NOT NULL,
+            chunk_index INTEGER NOT NULL,
+            page_or_section TEXT,
+            text TEXT NOT NULL,
+            token_count INTEGER,
+            created_at TEXT NOT NULL
+        );
+        """)
         
         # Indexes for high performance
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_stock_sector ON stock_master(sector_id);")
@@ -296,6 +330,10 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_holdings_acc ON holdings(account_id);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_ledger_acc ON simulated_cash_ledger(account_id, created_at);")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_ai_user ON ai_analysis_runs(user_id, analysis_type);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_findoc_sym ON financial_documents(symbol);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_findoc_hash ON financial_documents(content_hash);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_findoc_chunk_sym ON financial_document_chunks(symbol);")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_findoc_chunk_doc ON financial_document_chunks(doc_id);")
 
 def seed_master_data():
     """Seed Sectors and 100 Stock Universe idempotently."""
@@ -416,4 +454,12 @@ def seed_master_data():
                     VALUES (?, ?, '1d', ?, ?, ?, ?, ?)
                     ON CONFLICT(symbol, timestamp, interval) DO NOTHING;
                 """, (sym, bar_date, o, h, l, c, v))
+
+    # Seed genuine financial documents corpus for RAG
+    try:
+        from app.ai.rag.seed_data import seed_financial_documents
+        seed_financial_documents()
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"RAG seed_financial_documents warning: {e}")
 

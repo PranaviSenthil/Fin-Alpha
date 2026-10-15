@@ -2,6 +2,8 @@
 
 A high-performance Indian stock market browsing, financial charting, paper trading, and AI-driven investment intelligence web platform inspired by Zerodha Kite and INDmoney.
 
+> **Official PS 04 Architecture Specification**: For the complete technical design of the four specialized AI agents, central concurrent orchestrator, RAG document pipeline, verifiable citation models, and session observability matrix, see the comprehensive [Architecture Documentation](ARCHITECTURE.md).
+
 ---
 
 ## Key Features
@@ -48,10 +50,13 @@ A high-performance Indian stock market browsing, financial charting, paper tradi
 - **Company Deep Research**: Automated SWOT analysis (Strengths, Weaknesses, Opportunities, Threats), fundamental valuation assessment (P/E, P/B, RoE), and Fair Value estimations with evidence citations.
 - **Portfolio Risk & Diversification Audit**: Concentration metrics, single-stock exposure thresholds, sector skew warnings, and diversification scoring.
 - **Trading Psychology Coaching**: Behavioral diagnostics identifying overtrading, revenge trading, and emotional holding patterns.
+- **Autonomous Multi-Agent Architecture**: Four specialized parallel agents (Market Analysis, Financial Research, Portfolio Analysis, Trading Behavior) coordinated by a central concurrent orchestrator with BM25 RAG document citations and session observability. Detailed in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ---
 
 ## Architecture Overview
+
+For an exhaustive, production-grade architectural specification including Mermaid data-flow and sequence diagrams, agent input/output contracts, and evaluation methodologies, refer directly to [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ```
 fin-alpha/
@@ -83,21 +88,77 @@ fin-alpha/
 - Python 3.10+
 - Node.js 18+ and npm
 
-### 1. Backend Setup
-```bash
+### 1. Backend Setup (Windows PowerShell)
+
+Run these commands from the project's root directory.
+
+**Step 1: Create a virtual environment**
+
+If the virtual environment does not already exist, create it:
+
+```powershell
+if (!(Test-Path .\venv)) {
+    py -m venv venv
+}
+```
+
+**Step 2: Activate the virtual environment**
+
+```powershell
+.\venv\Scripts\Activate.ps1
+```
+
+**Step 3: Install backend dependencies**
+
+Install all dependencies listed in the backend requirements file:
+
+```powershell
+python -m pip install --upgrade pip
+python -m pip install -r backend\requirements.txt
+```
+
+**Step 4: Configure environment variables**
+
+Create your local `.env` file from the example file if it does not already exist:
+
+```powershell
+if (!(Test-Path .\backend\.env)) {
+    Copy-Item .\backend\.env.example .\backend\.env
+}
+```
+
+Open `backend/.env` and configure the required environment variables, including your Gemini API key and any other required secrets.
+
+> **Important:** Keep your `.env` file private. Never commit API keys, passwords, tokens, or other secrets to GitHub.
+
+**Step 5: Start the backend server**
+
+From the project root, run:
+
+```powershell
 cd backend
-
-# Activate virtual environment (Windows Powershell)
-..\venv\Scripts\Activate.ps1
-
-# Install dependencies (already pre-installed in venv)
-pip install fastapi uvicorn yfinance pandas pyjwt bcrypt pytest httpx
-
-# Start the FastAPI server
 uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
 ```
-The backend API documentation is available at: `http://127.0.0.1:8000/docs`
 
+The FastAPI backend will be available at:
+
+- **API Base URL:** http://127.0.0.1:8000
+- **Interactive API Documentation:** http://127.0.0.1:8000/docs
+- **Alternative API Documentation:** http://127.0.0.1:8000/redoc
+
+Keep the terminal running while using the application.
+
+**Troubleshooting**
+
+- If `py` is not recognized, install Python and ensure it is added to your system PATH.
+- If PowerShell blocks virtual environment activation, run the following command in the current PowerShell session and activate the environment again:
+
+  ```powershell
+  Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  ```
+
+- If dependency installation fails, verify that `backend/requirements.txt` exists and lists all required backend dependencies.
+- If AI features fail to initialize, check the API key and other configuration values in `backend/.env`.
 ### 2. Frontend Setup
 ```bash
 cd frontend

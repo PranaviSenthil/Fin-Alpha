@@ -1,7 +1,7 @@
 import json
 import logging
 from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, UploadFile, File, Form
 from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
@@ -11,6 +11,10 @@ from app.ai.financial_agent import financial_research_agent
 from app.ai.portfolio_agent import portfolio_analysis_agent
 from app.ai.behavior_agent import trading_behavior_agent
 from app.ai.orchestrator import central_ai_orchestrator
+from app.ai.rag.retriever import document_retriever
+from app.ai.rag.ingestion import DocumentIngestionError
+from app.ai.rag.seed_data import seed_financial_documents
+from app.ai.schemas import DocumentIngestRequest
 from app.api.v1.auth import get_current_user
 from app.core.database import get_db
 from app.core.utils import sanitize_for_json
@@ -26,6 +30,7 @@ router = APIRouter(prefix="/ai", tags=["AI Investment Intelligence & Specialized
 
 class CompanyResearchRequest(BaseModel):
     symbol: str
+    query: Optional[str] = None
 
 class OrchestrationRequest(BaseModel):
     query: Optional[str] = "comprehensive_audit"
@@ -340,6 +345,7 @@ def post_ai_chat(req: AIChatRequest, user: Optional[dict] = Depends(get_optional
 
 @router.get("/agents/market")
 @router.post("/agents/market")
+@router.get("/market-intelligence")
 def get_market_agent_analysis(
     symbol: Optional[str] = Query(None),
     req: Optional[CompanyResearchRequest] = None
@@ -354,25 +360,35 @@ def get_market_agent_analysis(
     return sanitize_for_json(res.model_dump())
 
 @router.get("/agents/financial/{symbol}")
-def get_financial_agent_by_symbol(symbol: str):
+def get_financial_agent_by_symbol(symbol: str, query: Optional[str] = Query(None)):
     """
     Agent 2: Financial Research Agent (GET).
-    Analyzes fundamentals, valuation multiples, balance sheet, cash flow, SWOT, and verified filings.
+    Analyzes fundamentals, valuation multiples, balance sheet, and synthesizes retrieved documentary filings.
     """
-    res = financial_research_agent.analyze(symbol)
+    res = financial_research_agent.analyze(symbol, query=query)
+    return sanitize_for_json(res.model_dump())
+
+@router.get("/financial-research")
+def get_financial_research_query(symbol: Optional[str] = Query(None), query: Optional[str] = Query(None)):
+    """
+    Financial Research Query endpoint with optional symbol query param.
+    """
+    target_sym = symbol or "TCS"
+    res = financial_research_agent.analyze(target_sym, query=query)
     return sanitize_for_json(res.model_dump())
 
 @router.post("/agents/financial")
 def post_financial_agent_analysis(req: CompanyResearchRequest):
     """
     Agent 2: Financial Research Agent (POST).
-    Analyzes fundamentals, valuation multiples, balance sheet, cash flow, SWOT, and verified filings.
+    Analyzes fundamentals, valuation multiples, balance sheet, and synthesizes retrieved documentary filings.
     """
-    res = financial_research_agent.analyze(req.symbol)
+    res = financial_research_agent.analyze(req.symbol, query=req.query)
     return sanitize_for_json(res.model_dump())
 
 @router.get("/agents/portfolio")
 @router.post("/agents/portfolio")
+@router.get("/portfolio-analysis")
 def get_portfolio_agent_analysis(current_user: dict = Depends(get_current_user)):
     """
     Agent 3: Portfolio Analysis Agent.
@@ -383,6 +399,7 @@ def get_portfolio_agent_analysis(current_user: dict = Depends(get_current_user))
 
 @router.get("/agents/behavior")
 @router.post("/agents/behavior")
+@router.get("/trading-behavior")
 def get_behavior_agent_analysis(current_user: dict = Depends(get_current_user)):
     """
     Agent 4: Trading Behavior Analysis Agent.
@@ -483,3 +500,135 @@ def get_analysis_run(run_id: str):
         del run_dict["details_json"]
         del run_dict["evidence_citations_json"]
         return sanitize_for_json(run_dict)
+
+# --- Financial Document Ingestion & RAG Corpus Endpoints ---
+
+class DocumentSearchRequest(BaseModel):
+    symbol: str
+    query: str
+    top_k: Optional[int] = 4
+
+@router.post("/documents/ingest")
+def ingest_document(req: DocumentIngestRequest):
+    """
+    Ingest a financial document (plain text, markdown, or HTML) into the RAG corpus.
+    Deduplicates automatically using SHA-256 content hashing.
+    """
+    try:
+        res = document_retriever.store_document(
+            symbol=req.symbol,
+            title=req.title,
+            doc_type=req.doc_type,
+            publisher=req.publisher,
+            source_url=req.source_url,
+            publication_date=req.publication_date,
+            raw_text=req.content or req.text,
+            file_type=req.file_type or "text",
+            page_or_section=req.page_or_section,
+            metadata=req.metadata
+        )
+        return sanitize_for_json({"success": True, **res})
+    except DocumentIngestionError as de:
+        raise HTTPException(status_code=400, detail=str(de))
+    except Exception as e:
+        logger.error(f"Error ingesting financial document: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to ingest document: {str(e)}")
+
+@router.post("/documents/upload")
+async def upload_document_file(
+    file: UploadFile = File(...),
+    symbol: str = Form(...),
+    title: str = Form(...),
+    doc_type: str = Form("filing"),
+    publisher: str = Form("Company Disclosures"),
+    source_url: Optional[str] = Form(None),
+    publication_date: Optional[str] = Form(None),
+    page_or_section: Optional[str] = Form(None)
+):
+    """
+    Upload a financial document file (PDF, TXT, HTML, or Markdown) for ingestion.
+    """
+    try:
+        content_bytes = await file.read()
+        filename = (file.filename or "").lower()
+        file_type = "pdf" if filename.endswith(".pdf") else "html" if filename.endswith((".html", ".htm")) else "text"
+
+        res = document_retriever.store_document(
+            symbol=symbol,
+            title=title,
+            doc_type=doc_type,
+            publisher=publisher,
+            source_url=source_url,
+            publication_date=publication_date,
+            file_bytes=content_bytes,
+            file_type=file_type,
+            page_or_section=page_or_section
+        )
+        return sanitize_for_json(res)
+    except DocumentIngestionError as de:
+        raise HTTPException(status_code=400, detail=str(de))
+    except Exception as e:
+        logger.error(f"Error uploading financial document: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to process uploaded file: {str(e)}")
+
+@router.get("/documents")
+def list_ingested_documents(symbol: Optional[str] = Query(None)):
+    """List all ingested corporate financial documents, optionally filtered by symbol."""
+    docs = document_retriever.list_documents(symbol=symbol)
+    return sanitize_for_json({"count": len(docs), "documents": docs})
+
+@router.get("/documents/{doc_id}")
+def get_document_details(doc_id: str):
+    """Get complete document metadata and all chunk passages."""
+    doc = document_retriever.get_document(doc_id)
+    if not doc:
+        raise HTTPException(status_code=404, detail="Document not found.")
+    return sanitize_for_json({"success": True, "document": doc, **doc})
+
+@router.delete("/documents/{doc_id}")
+def delete_document_record(doc_id: str):
+    """Delete a document and its chunks from the RAG database."""
+    deleted = document_retriever.delete_document(doc_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Document not found or already deleted.")
+    return {"success": True, "message": f"Document {doc_id} deleted."}
+
+@router.post("/documents/search")
+def search_document_corpus(req: DocumentSearchRequest):
+    """
+    Execute a direct retrieval query against a company's document corpus.
+    Returns ranked evidence chunks with relevance scores.
+    """
+    clean_sym = req.symbol.strip().upper().replace(".NS", "").replace(".BO", "")
+    chunks = document_retriever.retrieve(
+        symbol=clean_sym,
+        query=req.query,
+        top_k=req.top_k or 4
+    )
+    conflicts = document_retriever.detect_conflicts(chunks)
+    return sanitize_for_json({
+        "symbol": clean_sym,
+        "query": req.query,
+        "count": len(chunks),
+        "chunks": [c.model_dump() for c in chunks],
+        "results": [c.model_dump() for c in chunks],
+        "conflicts": conflicts
+    })
+
+@router.post("/documents/seed")
+def seed_default_corpus():
+    """Seed or refresh the default genuine financial documents corpus."""
+    res = seed_financial_documents()
+    return sanitize_for_json(res)
+
+@router.get("/observability/metrics")
+def get_observability_metrics():
+    """
+    Measure and return key session observability metrics:
+    1. Agent & Orchestrator Latencies (real-time ms stats)
+    2. Portfolio Risk Concentration (HHI Index)
+    3. Signal Classification Evaluation against historical time-separated dataset
+    """
+    from app.ai.observability import observability_tracker
+    report = observability_tracker.get_comprehensive_metrics()
+    return sanitize_for_json(report)

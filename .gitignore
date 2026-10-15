@@ -1,23 +1,108 @@
-# Environment variables and secrets
+# =============================================================================
+# VibeFinance — Repository-Wide .gitignore
+# =============================================================================
+
+# --- 1. Secrets, Environment Variables & Credentials ---
 .env
 .env.*
-backend/.env
-backend/.env.*
-!backend/.env.example
+*.local
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
 
-# Python virtual environments & bytecode
-.venv/
+# Whitelist safe, sanitized environment configuration templates
+!.env.example
+!**/.env.example
+!**/.env.*.example
+
+# --- 2. Python Virtual Environments ---
 venv/
+.venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# --- 3. Python Bytecode, Caches & Testing Artifacts ---
 __pycache__/
-*.pyc
-*.pyo
-
-# Testing & build caches
+*.py[cod]
+*$py.class
+*.so
 .pytest_cache/
-dist/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.cache/
+*.egg-info/
+.eggs/
 build/
-node_modules/
+dist/
+develop-eggs/
+downloads/
+eggs/
+.installed.cfg
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 
-# SQLite WAL files
+# --- 4. Node.js & React / Vite Frontend Artifacts ---
+node_modules/
+*/node_modules/
+**/node_modules/
+frontend/dist/
+dist/
+dist-ssr/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.eslintcache
+.oxlintcache
+
+# --- 5. Local Databases & SQLite Runtime Journals ---
+*.db
 *.db-shm
 *.db-wal
+*.db-journal
+*.sqlite
+*.sqlite3
+*.sqlite3-shm
+*.sqlite3-wal
+*.sqlite3-journal
+
+# --- 6. Runtime Logs & Temporary Files ---
+*.log
+logs/
+*.tmp
+*.temp
+
+# --- 7. Operating System & Editor Artifacts ---
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~

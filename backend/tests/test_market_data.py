@@ -48,3 +48,136 @@ def test_normalized_quote_contract():
     assert q.currency == "INR"
     assert q.price == 3850.50
     assert q.data_status == "fresh"
+
+
+# ---------------------------------------------------------------------------
+# Regression tests for the self.source_label AttributeError bug
+# (fixed in get_all_quotes(): replaced self.source_label with
+#  settings.MARKET_DATA_PROVIDER in both the price-available and the
+#  price-unavailable branches)
+# ---------------------------------------------------------------------------
+
+from contextlib import contextmanager
+from unittest.mock import patch, MagicMock
+from app.core.config import settings
+
+
+# Minimal stock entry that matches the shape of STOCK_UNIVERSE items
+_STUB_STOCK = {
+    "symbol": "TESTSTK",
+    "name": "Test Stock Ltd",
+    "exchange": "NSE",
+    "provider_symbol": "TESTSTK.NS",
+    "sector_id": "it",
+    "sector_name": "Information Technology",
+    "subsector": "Software",
+    "currency": "INR",
+}
+
+
+@contextmanager
+def _empty_db():
+    """Context manager that returns a db connection whose cursor finds no rows."""
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_cursor.fetchall.return_value = []
+    mock_conn.cursor.return_value = mock_cursor
+    mock_conn.__enter__ = lambda s: s
+    mock_conn.__exit__ = MagicMock(return_value=False)
+    yield mock_conn
+
+
+def test_get_all_quotes_unavailable_path_does_not_raise():
+    """
+    Regression test: when the market_quotes table has NO rows for a stock,
+    get_all_quotes() previously raised AttributeError because it referenced
+    self.source_label which does not exist on MarketDataService.
+    After the fix it must complete without error and each unavailable quote
+    must carry a non-empty source string.
+    """
+    svc = MarketDataService()
+
+    with patch("app.market_data.service.get_db", return_value=_empty_db()), \
+         patch("app.market_data.service.STOCK_UNIVERSE", [_STUB_STOCK]):
+
+        # This must NOT raise AttributeError
+        quotes = svc.get_all_quotes(force_refresh=False)
+
+    assert len(quotes) == 1, "Expected exactly one quote for the one stubbed stock"
+    q = quotes[0]
+
+    # Core contract
+    assert q.symbol == "TESTSTK"
+    assert q.data_status == "unavailable"
+    assert q.price is None
+
+    # The bug: source must be a non-empty string, not an AttributeError
+    assert isinstance(q.source, str), "source must be a str, not missing"
+    assert q.source, "source must be non-empty"
+    assert q.source == settings.MARKET_DATA_PROVIDER, (
+        f"source should equal settings.MARKET_DATA_PROVIDER "
+        f"('{settings.MARKET_DATA_PROVIDER}'), got '{q.source}'"
+    )
+
+
+def test_get_all_quotes_null_source_in_db_row_uses_fallback():
+    """
+    Regression test: when a DB row has a NULL/empty source column (the
+    'row[\"source\"] or self.source_label' branch), get_all_quotes() previously
+    raised AttributeError.  After the fix it must fall back to
+    settings.MARKET_DATA_PROVIDER.
+    """
+    svc = MarketDataService()
+
+    # Build a realistic DB row dict with source=None
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).isoformat()
+    stub_row = {
+        "symbol": "TESTSTK",
+        "provider_symbol": "TESTSTK.NS",
+        "price": 1500.0,
+        "previous_close": 1480.0,
+        "open_price": 1490.0,
+        "day_high": 1520.0,
+        "day_low": 1475.0,
+        "volume": 500000,
+        "market_cap": None,
+        "currency": "INR",
+        "source": None,          # ← the problematic NULL value
+        "market_timestamp": now_iso,
+        "fetched_at": now_iso,
+        "data_status": "fresh",
+        "warnings": None,
+    }
+
+    @contextmanager
+    def _db_with_null_source():
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        # fetchall() returns the stub row
+        mock_cursor.fetchall.return_value = [stub_row]
+        mock_conn.cursor.return_value = mock_cursor
+        mock_conn.__enter__ = lambda s: s
+        mock_conn.__exit__ = MagicMock(return_value=False)
+        yield mock_conn
+
+    with patch("app.market_data.service.get_db", return_value=_db_with_null_source()), \
+         patch("app.market_data.service.STOCK_UNIVERSE", [_STUB_STOCK]):
+
+        # This must NOT raise AttributeError
+        quotes = svc.get_all_quotes(force_refresh=False)
+
+    assert len(quotes) == 1
+    q = quotes[0]
+
+    assert q.symbol == "TESTSTK"
+    assert q.price == 1500.0
+    assert q.data_status in ("fresh", "stale")   # depends on clock, both valid
+
+    # The bug: source must be a non-empty string, not an AttributeError
+    assert isinstance(q.source, str), "source must be a str, not missing"
+    assert q.source, "source must be non-empty"
+    assert q.source == settings.MARKET_DATA_PROVIDER, (
+        f"source should fall back to settings.MARKET_DATA_PROVIDER "
+        f"('{settings.MARKET_DATA_PROVIDER}'), got '{q.source}'"
+    )

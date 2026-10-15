@@ -83,11 +83,17 @@ def test_gemini_service_system_prompt_safety_and_rules():
     """Verify safety rules and educational directives are present in system prompt."""
     service = GeminiService()
     prompt = service.get_system_prompt()
-    assert "VibeFinance Market Analysis & Financial Research AI Assistant" in prompt
+    # Identity: the assistant identifies as the VibeFinance AI Research Assistant
+    assert "VibeFinance AI Research Assistant" in prompt
+    # Provider attribution must be present
     assert "Google Gemini" in prompt
-    assert "CRITICAL COMPLIANCE & SAFETY INSTRUCTIONS" in prompt
-    assert "EDUCATIONAL and RESEARCH platform" in prompt
-    assert "NEVER issue direct buy, sell, or hold recommendations" in prompt
+    # The prompt must contain response guidelines section
+    assert "CRITICAL RESPONSE GUIDELINES" in prompt
+    # No-trading-directive safety rule must be present (exact current phrasing)
+    assert "NO DIRECT TRADING DIRECTIVES" in prompt
+    assert "Never issue direct buy, sell, or hold commands" in prompt
+    # Grounding / honesty rule must be present
+    assert "FINANCIAL ACCURACY" in prompt
 
 def test_gemini_service_stock_context_injection():
     """Verify stock context (fundamentals, indicators, scenarios) is injected properly."""
@@ -121,7 +127,8 @@ def test_gemini_service_stock_context_injection():
     assert "TCS.NS" in prompt
     assert "Tata Consultancy Services Ltd" in prompt
     assert "₹3850.5" in prompt
-    assert "RSI(14): 58.4" in prompt
+    # RSI label in prompt is "RSI (14):" (space before parenthesis) — matches gemini_service.py line 181
+    assert "RSI (14): 58.4" in prompt
     assert "Bullish" in prompt
     assert "₹4,100 - ₹4,250" in prompt
 
