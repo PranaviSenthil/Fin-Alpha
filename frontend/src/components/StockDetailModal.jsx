@@ -284,8 +284,8 @@ export default function StockDetailModal({
                           ))}
                         </ul>
                       </div>
-                      <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #38bdf8' }}>
-                        <h4 style={{ fontSize: '0.85rem', color: '#38bdf8', fontWeight: 700, marginBottom: '8px' }}>OPPORTUNITIES</h4>
+                      <div className="glass-card" style={{ padding: '14px', borderLeft: '4px solid #0284c7' }}>
+                        <h4 style={{ fontSize: '0.85rem', color: '#0284c7', fontWeight: 700, marginBottom: '8px' }}>OPPORTUNITIES</h4>
                         <ul style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                           {aiResearch.details.swot_analysis.opportunities.map((o, idx) => (
                             <li key={idx}>{o}</li>

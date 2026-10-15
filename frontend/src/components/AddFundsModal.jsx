@@ -319,7 +319,7 @@ export default function AddFundsModal({ isOpen, onClose, currentBalance = 0, onF
                       padding: '5px 12px',
                       borderRadius: 'var(--radius-full)',
                       background: parseFloat(amount) === q ? 'var(--gain-color)' : 'var(--bg-secondary)',
-                      color: parseFloat(amount) === q ? '#090d16' : 'var(--text-secondary)',
+                      color: parseFloat(amount) === q ? '#ffffff' : 'var(--text-secondary)',
                       border: '1px solid var(--border-subtle)',
                       fontSize: '0.75rem',
                       fontWeight: 600,

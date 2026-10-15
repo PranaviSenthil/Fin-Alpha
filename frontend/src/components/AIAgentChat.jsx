@@ -212,8 +212,8 @@ export default function AIAgentChat({
         className="glass-card"
         style={{
           padding: '16px 20px',
-          background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(31, 43, 69, 0.85) 100%)',
-          border: '1px solid rgba(59, 130, 246, 0.3)'
+          background: 'var(--banner-bg)',
+          border: '1px solid var(--banner-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
@@ -338,7 +338,7 @@ export default function AIAgentChat({
           className="glass-card"
           style={{
             padding: '16px 20px',
-            background: 'rgba(15, 23, 42, 0.85)',
+            background: 'var(--bg-secondary)',
             borderLeft: '4px solid var(--accent-blue)'
           }}
         >
@@ -350,27 +350,27 @@ export default function AIAgentChat({
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', fontSize: '0.78rem' }}>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>Latest Price:</span>{' '}
               <strong className="font-mono">₹{stockContext.price || 'N/A'}</strong>
             </div>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>RSI(14):</span>{' '}
               <strong className="font-mono">{stockContext.rsi_14 ?? 'N/A'}</strong>
             </div>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>Moving Avg (SMA20):</span>{' '}
               <strong className="font-mono">₹{stockContext.sma_20 ?? 'N/A'}</strong>
             </div>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>Trailing P/E:</span>{' '}
               <strong className="font-mono">{stockContext.pe_ratio ? `${stockContext.pe_ratio}x` : 'N/A'}</strong>
             </div>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>Return on Equity (RoE):</span>{' '}
               <strong className="font-mono">{stockContext.roe_pct ? `${stockContext.roe_pct}%` : 'N/A'}</strong>
             </div>
-            <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)' }}>
+            <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)' }}>
               <span style={{ color: 'var(--text-muted)' }}>Debt-to-Equity:</span>{' '}
               <strong className="font-mono">{stockContext.debt_to_equity_ratio !== null ? `${stockContext.debt_to_equity_ratio}x` : 'N/A'}</strong>
               <div style={{ fontSize: '0.7rem', color: 'var(--accent-blue)', marginTop: '2px' }}>
@@ -378,7 +378,7 @@ export default function AIAgentChat({
               </div>
             </div>
             {stockContext.balance_sheet_debt?.total_debt && (
-              <div style={{ padding: '8px 10px', background: 'rgba(255, 255, 255, 0.03)', borderRadius: 'var(--radius-sm)', gridColumn: 'span 2' }}>
+              <div style={{ padding: '8px 10px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', gridColumn: 'span 2' }}>
                 <span style={{ color: 'var(--text-muted)' }}>Balance Sheet Audit:</span>{' '}
                 <span>Total Debt: ₹{(stockContext.balance_sheet_debt.total_debt / 1e7).toLocaleString('en-IN', { maximumFractionDigits: 0 })} Cr vs Equity: ₹{(stockContext.balance_sheet_debt.stockholders_equity / 1e7).toLocaleString('en-IN', { maximumFractionDigits: 0 })} Cr</span>
               </div>
@@ -409,8 +409,8 @@ export default function AIAgentChat({
                   style={{
                     padding: '14px',
                     borderRadius: 'var(--radius-sm)',
-                    background: isBull ? 'rgba(0, 208, 156, 0.05)' : isBear ? 'rgba(235, 91, 60, 0.05)' : 'rgba(15, 23, 42, 0.7)',
-                    border: `1px solid ${isBull ? 'rgba(0, 208, 156, 0.3)' : isBear ? 'rgba(235, 91, 60, 0.3)' : 'var(--border-subtle)'}`,
+                    background: isBull ? 'var(--gain-bg)' : isBear ? 'var(--loss-bg)' : 'var(--bg-elevated)',
+                    border: `1px solid ${isBull ? 'var(--gain-border)' : isBear ? 'var(--loss-border)' : 'var(--border-subtle)'}`,
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between'
@@ -473,7 +473,7 @@ export default function AIAgentChat({
                 fontSize: '0.78rem',
                 padding: '6px 12px',
                 borderRadius: '16px',
-                background: 'rgba(255, 255, 255, 0.04)',
+                background: 'var(--bg-secondary)',
                 border: '1px solid var(--border-subtle)',
                 textAlign: 'left'
               }}
@@ -495,7 +495,7 @@ export default function AIAgentChat({
           display: 'flex',
           flexDirection: 'column',
           gap: '16px',
-          background: 'rgba(10, 14, 23, 0.7)'
+          background: 'var(--bg-card)'
         }}
       >
         {messages.length === 0 ? (
@@ -528,14 +528,14 @@ export default function AIAgentChat({
                     background: isUser
                       ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
                       : m.isError
-                      ? 'rgba(235, 91, 60, 0.15)'
-                      : 'rgba(30, 41, 59, 0.85)',
+                      ? 'rgba(220, 38, 38, 0.1)'
+                      : 'var(--bg-elevated)',
                     border: isUser
-                      ? '1px solid rgba(59, 130, 246, 0.5)'
+                      ? '1px solid rgba(37, 99, 235, 0.5)'
                       : m.isError
-                      ? '1px solid rgba(235, 91, 60, 0.4)'
+                      ? '1px solid rgba(220, 38, 38, 0.3)'
                       : '1px solid var(--border-subtle)',
-                    color: '#ffffff'
+                    color: isUser ? '#ffffff' : 'var(--text-primary)'
                   }}
                 >
                   {isUser ? (
@@ -611,7 +611,7 @@ export default function AIAgentChat({
           alignItems: 'center',
           gap: '8px',
           padding: '8px 12px',
-          background: 'rgba(255, 255, 255, 0.02)',
+          background: 'var(--bg-elevated)',
           borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--border-subtle)',
           fontSize: '0.72rem',

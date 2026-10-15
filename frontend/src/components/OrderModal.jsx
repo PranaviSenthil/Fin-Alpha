@@ -83,7 +83,7 @@ export default function OrderModal({ stock, onClose, onOrderPlaced, availableCas
               onClick={() => setSide('BUY')}
               style={{
                 background: side === 'BUY' ? 'var(--gain-color)' : 'transparent',
-                color: side === 'BUY' ? '#090d16' : 'var(--text-secondary)',
+                color: side === 'BUY' ? '#ffffff' : 'var(--text-secondary)',
                 fontWeight: 700,
               }}
             >
@@ -229,7 +229,7 @@ export default function OrderModal({ stock, onClose, onOrderPlaced, availableCas
                 }}
                 style={{
                   background: 'var(--gain-color)',
-                  color: '#090d16',
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: 'var(--radius-sm)',
                   padding: '3px 8px',

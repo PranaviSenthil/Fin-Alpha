@@ -78,8 +78,8 @@ export default function MarketsView({ onSelectStock }) {
           className="glass-card"
           style={{
             padding: '20px',
-            background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(31, 43, 69, 0.8) 100%)',
-            border: '1px solid rgba(59, 130, 246, 0.3)'
+            background: 'var(--banner-bg)',
+            border: '1px solid var(--banner-border)'
           }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
@@ -310,7 +310,7 @@ export default function MarketsView({ onSelectStock }) {
                 style={{
                   padding: '16px',
                   borderRadius: 'var(--radius-sm)',
-                  background: 'rgba(15, 23, 42, 0.6)',
+                  background: 'var(--bg-secondary)',
                   border: '1px dashed var(--border-subtle)',
                   display: 'flex',
                   alignItems: 'center',
@@ -331,7 +331,7 @@ export default function MarketsView({ onSelectStock }) {
               <div>
                 {/* Metric Summary Cards */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '10px', marginBottom: '14px' }}>
-                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                       Aggregate Score
                     </div>
@@ -343,7 +343,7 @@ export default function MarketsView({ onSelectStock }) {
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Range: -1.0 to +1.0</div>
                   </div>
 
-                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                       Headlines Analyzed
                     </div>
@@ -353,7 +353,7 @@ export default function MarketsView({ onSelectStock }) {
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Deduplicated articles</div>
                   </div>
 
-                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                       Polarity Distribution
                     </div>
@@ -367,7 +367,7 @@ export default function MarketsView({ onSelectStock }) {
                     <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '2px' }}>VADER valence threshold ±0.05</div>
                   </div>
 
-                  <div style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '10px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                     <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                       Confidence Quality
                     </div>
@@ -488,7 +488,7 @@ export default function MarketsView({ onSelectStock }) {
                 </div>
 
                 {/* Footer with Metadata */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                   <span>
                     Scoring Engine: Loughran-McDonald & VADER Normalized ([-1.0, +1.0])
                   </span>
@@ -514,7 +514,7 @@ export default function MarketsView({ onSelectStock }) {
                   style={{
                     padding: '12px 14px',
                     borderRadius: 'var(--radius-sm)',
-                    background: 'rgba(15, 23, 42, 0.5)',
+                    background: 'var(--bg-elevated)',
                     border: '1px solid var(--border-subtle)',
                     fontSize: '0.82rem',
                     color: 'var(--text-secondary)',
@@ -549,8 +549,8 @@ export default function MarketsView({ onSelectStock }) {
                       style={{
                         padding: '16px',
                         borderRadius: 'var(--radius-sm)',
-                        background: isBull ? 'rgba(0, 208, 156, 0.05)' : isBear ? 'rgba(235, 91, 60, 0.05)' : 'rgba(15, 23, 42, 0.7)',
-                        border: `1px solid ${isBull ? 'rgba(0, 208, 156, 0.25)' : isBear ? 'rgba(235, 91, 60, 0.25)' : 'var(--border-subtle)'}`,
+                        background: isBull ? 'var(--gain-bg)' : isBear ? 'var(--loss-bg)' : 'var(--bg-elevated)',
+                        border: `1px solid ${isBull ? 'var(--gain-border)' : isBear ? 'var(--loss-border)' : 'var(--border-subtle)'}`,
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between'

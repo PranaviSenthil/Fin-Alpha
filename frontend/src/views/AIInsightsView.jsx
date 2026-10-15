@@ -122,8 +122,8 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
           className="glass-card"
           style={{
             padding: '24px',
-            background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(31, 43, 69, 0.8) 100%)',
-            border: '1px solid rgba(59, 130, 246, 0.3)'
+            background: 'var(--banner-ai-bg)',
+            border: '1px solid var(--banner-ai-border)'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '10px' }}>
@@ -454,7 +454,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                       <div
                         key={idx}
                         style={{
-                          background: 'rgba(15, 23, 42, 0.6)',
+                          background: 'var(--bg-secondary)',
                           borderRadius: 'var(--radius-sm)',
                           padding: '12px 14px',
                           border: '1px solid var(--border-subtle)'
@@ -462,7 +462,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '6px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span className="badge font-mono" style={{ background: 'rgba(236, 72, 153, 0.2)', color: '#f472b6', fontSize: '0.72rem', fontWeight: 700 }}>
+                            <span className="badge font-mono" style={{ background: 'rgba(236, 72, 153, 0.15)', color: '#be185d', fontSize: '0.72rem', fontWeight: 700 }}>
                               {c.citation_id}
                             </span>
                             <strong style={{ fontSize: '0.82rem', color: 'var(--text-primary)' }}>
@@ -522,7 +522,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                     {/* Latency Metric */}
-                    <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                         <Clock size={12} /> Total Orchestration Latency
                       </div>
@@ -535,7 +535,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                     </div>
 
                     {/* Portfolio Risk Concentration */}
-                    <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                         <PieChart size={12} /> Portfolio Risk Concentration
                       </div>
@@ -548,7 +548,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                     </div>
 
                     {/* Classification Evaluation */}
-                    <div style={{ background: 'rgba(15, 23, 42, 0.5)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                    <div style={{ background: 'var(--bg-elevated)', padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                         <CheckCircle2 size={12} /> Historical Signal Accuracy
                       </div>
@@ -566,7 +566,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', fontSize: '0.72rem', color: 'var(--text-muted)', borderTop: '1px solid var(--border-subtle)', paddingTop: '8px' }}>
                       <span>Agent Latencies:</span>
                       {Object.entries(executionMetrics.agent_latencies_ms).map(([ag, ms]) => (
-                        <span key={ag} style={{ background: 'rgba(255, 255, 255, 0.05)', padding: '2px 6px', borderRadius: '4px' }}>
+                        <span key={ag} style={{ background: 'var(--bg-elevated)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border-subtle)' }}>
                           <strong>{ag}:</strong> {ms}ms
                         </span>
                       ))}
@@ -607,7 +607,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                   {marketAnalysis.key_findings?.map((f, i) => (
-                    <div key={i} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <div key={i} style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                       • {f}
                     </div>
                   ))}
@@ -689,7 +689,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
 
                 {/* RAG Grounded Synthesis */}
                 {stockResearch.supporting_data?.rag_synthesis && (
-                  <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+                  <div style={{ padding: '16px', borderRadius: 'var(--radius-sm)', background: 'var(--banner-bg)', border: '1px solid var(--banner-border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Sparkles size={16} color="var(--accent-blue)" /> Document-Grounded Synthesis
@@ -712,7 +712,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                 {/* Key Findings */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                   {stockResearch.key_findings?.map((f, i) => (
-                    <div key={i} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <div key={i} style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                       • {f}
                     </div>
                   ))}
@@ -726,10 +726,10 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                     </h4>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                       {stockResearch.sources.filter(s => s.citation_id).map((c, idx) => (
-                        <div key={idx} style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'rgba(15, 23, 42, 0.6)', border: '1px solid rgba(59, 130, 246, 0.25)', fontSize: '0.78rem' }}>
+                        <div key={idx} style={{ padding: '12px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', fontSize: '0.78rem' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap', gap: '6px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span className="badge" style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#60a5fa', fontWeight: 700, fontSize: '0.68rem' }}>
+                              <span className="badge" style={{ background: 'var(--gain-bg)', color: 'var(--accent-blue)', fontWeight: 700, fontSize: '0.68rem' }}>
                                 {c.citation_id}
                               </span>
                               <strong style={{ color: 'var(--text-primary)' }}>{c.document_title}</strong>
@@ -744,7 +744,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                             </span>
                           </div>
                           {c.passage && (
-                            <blockquote style={{ margin: '4px 0 0 0', padding: '8px 12px', background: 'rgba(0,0,0,0.3)', borderLeft: '3px solid var(--accent-blue)', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'normal' }}>
+                            <blockquote style={{ margin: '4px 0 0 0', padding: '8px 12px', background: 'var(--bg-elevated)', borderLeft: '3px solid var(--accent-blue)', color: 'var(--text-secondary)', lineHeight: 1.5, fontStyle: 'normal' }}>
                               "{c.passage}"
                             </blockquote>
                           )}
@@ -782,7 +782,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                   {portfolioAudit.key_findings?.map((f, i) => (
-                    <div key={i} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <div key={i} style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                       • {f}
                     </div>
                   ))}
@@ -816,7 +816,7 @@ export default function AIInsightsView({ allStocks = [], onSelectStock }) {
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '12px' }}>
                   {behaviorAudit.key_findings?.map((f, i) => (
-                    <div key={i} style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                    <div key={i} style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                       • {f}
                     </div>
                   ))}

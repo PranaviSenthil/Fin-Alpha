@@ -222,8 +222,8 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
         className="glass-card"
         style={{
           padding: '20px',
-          background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(31, 43, 69, 0.8) 100%)',
-          border: '1px solid rgba(59, 130, 246, 0.3)'
+          background: 'var(--banner-bg)',
+          border: '1px solid var(--banner-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
@@ -670,7 +670,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {conflictingEvidence.map((conf, cIdx) => (
-                      <div key={cIdx} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(245, 158, 11, 0.25)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                      <div key={cIdx} style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', background: 'var(--bg-elevated)', border: '1px solid rgba(217, 119, 6, 0.25)', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
                         <div style={{ fontWeight: 700, color: '#f59e0b', marginBottom: '4px' }}>{conf.topic}</div>
                         <div>{conf.explanation}</div>
                       </div>
@@ -686,7 +686,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                   style={{
                     padding: '20px',
                     borderLeft: '4px solid var(--accent-blue)',
-                    background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)'
+                    background: 'var(--bg-card)'
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
@@ -768,7 +768,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                 </p>
 
                 {/* Business summary */}
-                <div style={{ marginTop: '14px', padding: '12px 14px', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                <div style={{ marginTop: '14px', padding: '12px 14px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)', fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                   <strong>Corporate Profile:</strong> {supporting.business_summary}
                 </div>
               </div>
@@ -951,7 +951,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                 </div>
 
                 {docCitations.length === 0 ? (
-                  <div style={{ padding: '24px', textAlign: 'center', background: 'rgba(15, 23, 42, 0.4)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
+                  <div style={{ padding: '24px', textAlign: 'center', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border-subtle)' }}>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                       No retrieved filing passages for this query or no documents have been ingested for {researchSymbol} yet.
                     </p>
@@ -980,8 +980,8 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                         style={{
                           padding: '16px',
                           borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(15, 23, 42, 0.6)',
-                          border: '1px solid rgba(59, 130, 246, 0.25)',
+                          background: 'var(--bg-secondary)',
+                          border: '1px solid var(--border-subtle)',
                           display: 'flex',
                           flexDirection: 'column',
                           gap: '8px'
@@ -1032,7 +1032,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                               margin: '4px 0 0 0',
                               padding: '10px 14px',
                               borderRadius: 'var(--radius-sm)',
-                              background: 'rgba(0, 0, 0, 0.35)',
+                              background: 'var(--bg-elevated)',
                               borderLeft: '3px solid var(--accent-blue)',
                               fontSize: '0.8rem',
                               color: 'var(--text-secondary)',
@@ -1071,8 +1071,8 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
                           style={{
                             padding: '16px',
                             borderRadius: 'var(--radius-sm)',
-                            background: isBull ? 'rgba(0, 208, 156, 0.05)' : isBear ? 'rgba(235, 91, 60, 0.05)' : 'rgba(15, 23, 42, 0.7)',
-                            border: `1px solid ${isBull ? 'rgba(0, 208, 156, 0.25)' : isBear ? 'rgba(235, 91, 60, 0.25)' : 'var(--border-subtle)'}`,
+                            background: isBull ? 'var(--gain-bg)' : isBear ? 'var(--loss-bg)' : 'var(--bg-elevated)',
+                            border: `1px solid ${isBull ? 'var(--gain-border)' : isBear ? 'var(--loss-border)' : 'var(--border-subtle)'}`,
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between'
@@ -1181,7 +1181,7 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.75)',
+            backgroundColor: 'rgba(15, 23, 42, 0.45)',
             backdropFilter: 'blur(6px)',
             display: 'flex',
             alignItems: 'center',
@@ -1199,8 +1199,8 @@ export default function StocksView({ stocks = [], onSelectStock, onOpenOrder, se
               maxHeight: '90vh',
               overflowY: 'auto',
               padding: '24px',
-              border: '1px solid rgba(59, 130, 246, 0.4)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.6)'
+              border: '1px solid var(--border-focus)',
+              boxShadow: 'var(--shadow-xl)'
             }}
             onClick={(e) => e.stopPropagation()}
           >

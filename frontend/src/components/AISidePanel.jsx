@@ -244,7 +244,7 @@ export default function AISidePanel({
           padding: '16px 0',
           cursor: 'pointer',
           border: '1px solid var(--border-subtle)',
-          background: 'rgba(15, 23, 42, 0.9)',
+          background: 'var(--bg-card)',
           transition: 'all 0.2s ease',
           userSelect: 'none'
         }}
@@ -283,9 +283,9 @@ export default function AISidePanel({
         display: 'flex',
         flexDirection: 'column',
         borderRadius: isMobile ? '0' : 'var(--radius-md, 12px)',
-        background: 'linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(11, 16, 27, 0.98) 100%)',
-        border: '1px solid rgba(59, 130, 246, 0.25)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-subtle)',
+        boxShadow: 'var(--shadow-lg)',
         overflow: 'hidden',
         zIndex: isMobile ? 1000 : 30
       }}
@@ -294,8 +294,8 @@ export default function AISidePanel({
       <div
         style={{
           padding: '14px 16px',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(20, 28, 46, 0.7)',
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--bg-secondary)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -370,8 +370,8 @@ export default function AISidePanel({
       <div
         style={{
           padding: '8px 14px',
-          background: 'rgba(15, 23, 42, 0.6)',
-          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'var(--bg-secondary)',
+          borderBottom: '1px solid var(--border-subtle)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -440,8 +440,8 @@ export default function AISidePanel({
         <div
           style={{
             padding: '10px 14px',
-            background: 'rgba(10, 15, 26, 0.95)',
-            borderBottom: '1px solid rgba(59, 130, 246, 0.3)',
+            background: 'var(--bg-elevated)',
+            borderBottom: '1px solid var(--border-subtle)',
             maxHeight: '160px',
             overflowY: 'auto',
             fontSize: '0.72rem'
@@ -527,8 +527,8 @@ export default function AISidePanel({
                   style={{
                     padding: '8px 10px',
                     borderRadius: '8px',
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    background: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-subtle)',
                     color: 'var(--text-secondary)',
                     fontSize: '0.76rem',
                     textAlign: 'left',
@@ -540,11 +540,11 @@ export default function AISidePanel({
                     gap: '6px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+                    e.currentTarget.style.borderColor = 'var(--accent-blue)';
                     e.currentTarget.style.color = 'var(--text-primary)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
                     e.currentTarget.style.color = 'var(--text-secondary)';
                   }}
                 >
@@ -575,13 +575,13 @@ export default function AISidePanel({
                     background: isUser
                       ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
                       : m.isError
-                      ? 'rgba(235, 91, 60, 0.15)'
-                      : 'rgba(30, 41, 59, 0.75)',
+                      ? 'rgba(220, 38, 38, 0.1)'
+                      : 'var(--bg-elevated)',
                     border: isUser
-                      ? '1px solid rgba(59, 130, 246, 0.5)'
+                      ? '1px solid rgba(37, 99, 235, 0.5)'
                       : m.isError
-                      ? '1px solid rgba(235, 91, 60, 0.4)'
-                      : '1px solid rgba(255, 255, 255, 0.08)',
+                      ? '1px solid rgba(220, 38, 38, 0.3)'
+                      : '1px solid var(--border-subtle)',
                     boxShadow: isUser ? '0 2px 8px rgba(37, 99, 235, 0.25)' : 'none'
                   }}
                 >
@@ -623,8 +623,8 @@ export default function AISidePanel({
       <div
         style={{
           padding: '12px 14px',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          background: 'rgba(15, 23, 42, 0.95)',
+          borderTop: '1px solid var(--border-subtle)',
+          background: 'var(--bg-card)',
           display: 'flex',
           flexDirection: 'column',
           gap: '8px'

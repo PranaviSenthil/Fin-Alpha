@@ -107,8 +107,8 @@ export default function PortfolioView({
         className="glass-card"
         style={{
           padding: '20px',
-          background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(31, 43, 69, 0.8) 100%)',
-          border: '1px solid rgba(59, 130, 246, 0.3)'
+          background: 'var(--banner-bg)',
+          border: '1px solid var(--banner-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
@@ -500,7 +500,7 @@ export default function PortfolioView({
                           color: 'var(--text-secondary)',
                           lineHeight: 1.4,
                           padding: '6px 8px',
-                          background: 'rgba(255, 255, 255, 0.02)',
+                          background: 'var(--bg-elevated)',
                           borderRadius: 'var(--radius-sm)'
                         }}
                       >
@@ -538,8 +538,8 @@ export default function PortfolioView({
                         style={{
                           padding: '12px 14px',
                           borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(0, 208, 156, 0.05)',
-                          border: '1px solid rgba(0, 208, 156, 0.2)',
+                          background: 'var(--gain-bg)',
+                          border: '1px solid var(--gain-border)',
                           fontSize: '0.8rem',
                           color: 'var(--text-secondary)',
                           lineHeight: 1.5,
@@ -572,8 +572,8 @@ export default function PortfolioView({
                           style={{
                             padding: '16px',
                             borderRadius: 'var(--radius-sm)',
-                            background: isBull ? 'rgba(0, 208, 156, 0.05)' : isBear ? 'rgba(235, 91, 60, 0.05)' : 'rgba(15, 23, 42, 0.7)',
-                            border: `1px solid ${isBull ? 'rgba(0, 208, 156, 0.25)' : isBear ? 'rgba(235, 91, 60, 0.25)' : 'var(--border-subtle)'}`,
+                            background: isBull ? 'var(--gain-bg)' : isBear ? 'var(--loss-bg)' : 'var(--bg-elevated)',
+                            border: `1px solid ${isBull ? 'var(--gain-border)' : isBear ? 'var(--loss-border)' : 'var(--border-subtle)'}`,
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between'
@@ -604,7 +604,7 @@ export default function PortfolioView({
 
               {/* Sources */}
               {agentSources.length > 0 && (
-                <div className="glass-card" style={{ padding: '14px 20px', background: 'rgba(10, 14, 23, 0.6)' }}>
+                <div className="glass-card" style={{ padding: '14px 20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
                     Ledger Audit Sources & Traceability
                   </div>
@@ -614,7 +614,7 @@ export default function PortfolioView({
                         key={idx}
                         style={{
                           fontSize: '0.75rem',
-                          background: 'rgba(255, 255, 255, 0.04)',
+                          background: 'var(--bg-elevated)',
                           padding: '6px 12px',
                           borderRadius: 'var(--radius-sm)',
                           border: '1px solid var(--border-subtle)'

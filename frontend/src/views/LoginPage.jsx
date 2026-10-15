@@ -88,7 +88,7 @@ export default function LoginPage({ onLoginSuccess, onExploreGuest }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'radial-gradient(circle at 50% 20%, #162032 0%, #090d16 80%)',
+        background: 'radial-gradient(circle at 50% 20%, #f1f5f9 0%, #e2e8f0 80%)',
         padding: '24px 16px',
         color: 'var(--text-primary)'
       }}
@@ -102,7 +102,7 @@ export default function LoginPage({ onLoginSuccess, onExploreGuest }) {
           borderRadius: 'var(--radius-xl)',
           background: 'var(--bg-secondary)',
           border: '1px solid var(--border-focus)',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 30px rgba(0, 208, 156, 0.1)',
+          boxShadow: '0 20px 40px -12px rgba(0, 0, 0, 0.08), 0 0 30px rgba(5, 150, 105, 0.08)',
           overflow: 'hidden'
         }}
       >
@@ -110,7 +110,7 @@ export default function LoginPage({ onLoginSuccess, onExploreGuest }) {
         <div
           style={{
             padding: '48px 40px',
-            background: 'linear-gradient(145deg, rgba(16, 24, 40, 0.9) 0%, rgba(10, 15, 29, 0.95) 100%)',
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8fafc 100%)',
             borderRight: '1px solid var(--border-subtle)',
             display: 'flex',
             flexDirection: 'column',
@@ -125,14 +125,14 @@ export default function LoginPage({ onLoginSuccess, onExploreGuest }) {
                   width: '44px',
                   height: '44px',
                   borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #00d09c 100%)',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 20px rgba(0, 208, 156, 0.4)'
+                  boxShadow: '0 0 20px rgba(5, 150, 105, 0.25)'
                 }}
               >
-                <TrendingUp size={24} color="#090d16" strokeWidth={2.5} />
+                <TrendingUp size={24} color="#ffffff" strokeWidth={2.5} />
               </div>
               <div>
                 <span
@@ -141,7 +141,7 @@ export default function LoginPage({ onLoginSuccess, onExploreGuest }) {
                     fontSize: '1.6rem',
                     fontWeight: 800,
                     letterSpacing: '-0.02em',
-                    background: 'linear-gradient(90deg, #ffffff 40%, #00d09c 100%)',
+                    background: 'linear-gradient(90deg, #0f172a 40%, #059669 100%)',
                     WebkitBackgroundClip: 'text',
                     WebkitTextFillColor: 'transparent'
                   }}

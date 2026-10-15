@@ -31,12 +31,12 @@ function renderInline(text) {
           key={i}
           style={{
             fontFamily: 'monospace',
-            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'var(--bg-elevated)',
             padding: '2px 6px',
             borderRadius: '4px',
             fontSize: '0.85em',
-            color: 'var(--accent-blue, #60a5fa)',
-            border: '1px solid rgba(255, 255, 255, 0.1)'
+            color: 'var(--accent-blue)',
+            border: '1px solid var(--border-subtle)'
           }}
         >
           {part.slice(1, -1)}
@@ -48,7 +48,7 @@ function renderInline(text) {
     if ((part.startsWith('***') && part.endsWith('***') && part.length >= 6) ||
         (part.startsWith('___') && part.endsWith('___') && part.length >= 6)) {
       return (
-        <strong key={i} style={{ fontWeight: 800, fontStyle: 'italic', color: 'var(--text-primary, #ffffff)' }}>
+        <strong key={i} style={{ fontWeight: 800, fontStyle: 'italic', color: 'var(--text-primary)' }}>
           {renderInline(part.slice(3, -3))}
         </strong>
       );
@@ -58,7 +58,7 @@ function renderInline(text) {
     if ((part.startsWith('**') && part.endsWith('**') && part.length >= 4) ||
         (part.startsWith('__') && part.endsWith('__') && part.length >= 4)) {
       return (
-        <strong key={i} style={{ fontWeight: 700, color: 'var(--text-primary, #ffffff)' }}>
+        <strong key={i} style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
           {renderInline(part.slice(2, -2))}
         </strong>
       );
@@ -68,7 +68,7 @@ function renderInline(text) {
     if ((part.startsWith('*') && part.endsWith('*') && part.length >= 2) ||
         (part.startsWith('_') && part.endsWith('_') && part.length >= 2)) {
       return (
-        <em key={i} style={{ fontStyle: 'italic', color: 'var(--text-secondary, #cbd5e1)' }}>
+        <em key={i} style={{ fontStyle: 'italic', color: 'var(--text-secondary)' }}>
           {renderInline(part.slice(1, -1))}
         </em>
       );
@@ -339,10 +339,10 @@ export default function MarkdownRenderer({ content = '', className = '' }) {
             );
           case 'table':
             return (
-              <div key={idx} style={{ overflowX: 'auto', margin: '6px 0', borderRadius: '6px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div key={idx} style={{ overflowX: 'auto', margin: '6px 0', borderRadius: '6px', border: '1px solid var(--border-subtle)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(30, 41, 59, 0.9)', borderBottom: '1px solid rgba(255, 255, 255, 0.15)' }}>
+                    <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)' }}>
                       {block.headers.map((h, hIdx) => (
                         <th key={hIdx} style={{ padding: '8px 10px', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {renderInline(h)}
@@ -355,8 +355,8 @@ export default function MarkdownRenderer({ content = '', className = '' }) {
                       <tr
                         key={rIdx}
                         style={{
-                          background: rIdx % 2 === 0 ? 'rgba(15, 23, 42, 0.6)' : 'rgba(30, 41, 59, 0.3)',
-                          borderBottom: rIdx < block.rows.length - 1 ? '1px solid rgba(255, 255, 255, 0.06)' : 'none'
+                          background: rIdx % 2 === 0 ? 'var(--bg-card)' : 'var(--bg-elevated)',
+                          borderBottom: rIdx < block.rows.length - 1 ? '1px solid var(--border-subtle)' : 'none'
                         }}
                       >
                         {row.map((cell, cIdx) => (
@@ -377,12 +377,12 @@ export default function MarkdownRenderer({ content = '', className = '' }) {
                 style={{
                   margin: '6px 0',
                   padding: '10px 14px',
-                  background: 'rgba(10, 14, 23, 0.95)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: 'var(--bg-elevated)',
+                  border: '1px solid var(--border-subtle)',
                   borderRadius: '6px',
                   overflowX: 'auto',
                   fontSize: '0.8rem',
-                  color: '#e2e8f0',
+                  color: 'var(--text-primary)',
                   fontFamily: 'monospace',
                   lineHeight: 1.5
                 }}
@@ -396,7 +396,7 @@ export default function MarkdownRenderer({ content = '', className = '' }) {
                 key={idx}
                 style={{
                   border: 'none',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                  borderTop: '1px solid var(--border-subtle)',
                   margin: '8px 0'
                 }}
               />

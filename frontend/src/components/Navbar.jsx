@@ -83,7 +83,7 @@ export default function Navbar({
   return (
     <header style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)', position: 'sticky', top: 0, zIndex: 100 }}>
       {/* Top Banner Ticker Strip */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'rgba(10, 13, 20, 0.7)', fontSize: '0.78rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px', borderBottom: '1px solid var(--border-subtle)', background: 'var(--bg-card)', fontSize: '0.78rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', overflowX: 'auto' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <span style={{ color: 'var(--text-muted)', fontWeight: 600 }}>NIFTY 50</span>
@@ -134,7 +134,7 @@ export default function Navbar({
             <button
               onClick={onOpenAddFunds}
               style={{
-                background: 'linear-gradient(135deg, #00d09c 0%, #059669 100%)',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                 color: '#ffffff',
                 border: 'none',
                 padding: '3px 10px',
@@ -145,7 +145,7 @@ export default function Navbar({
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                boxShadow: '0 2px 8px rgba(0, 208, 156, 0.35)',
+                boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
                 transition: 'all var(--transition-fast)'
               }}
               title="Add virtual paper trading funds"
@@ -164,11 +164,11 @@ export default function Navbar({
           onClick={() => setActiveTab('dashboard')}
           style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', flexShrink: 0 }}
         >
-          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'linear-gradient(135deg, #3b82f6 0%, #00d09c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(0, 208, 156, 0.4)' }}>
-            <TrendingUp size={20} color="#090d16" strokeWidth={2.5} />
+          <div style={{ width: '34px', height: '34px', borderRadius: '8px', background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 15px rgba(5, 150, 105, 0.25)' }}>
+            <TrendingUp size={20} color="#ffffff" strokeWidth={2.5} />
           </div>
           <div>
-            <span className="font-heading" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #ffffff 40%, #00d09c 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            <span className="font-heading" style={{ fontSize: '1.25rem', fontWeight: 800, letterSpacing: '-0.02em', background: 'linear-gradient(90deg, #0f172a 40%, #059669 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               VibeFinance
             </span>
           </div>
@@ -275,13 +275,13 @@ export default function Navbar({
                     width: '22px',
                     height: '22px',
                     borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #3b82f6 0%, #00d09c 100%)',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #059669 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     fontSize: '0.68rem',
                     fontWeight: 800,
-                    color: '#090d16'
+                    color: '#ffffff'
                   }}
                 >
                   {(currentUser.full_name || currentUser.email || 'U')[0].toUpperCase()}

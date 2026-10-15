@@ -95,7 +95,7 @@ export default function MarketOverviewView({ onSelectStock, onOpenOrder }) {
       </div>
 
       {/* AI Market Pulse Feature Banner */}
-      <div className="glass-card" style={{ padding: '20px', background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.9) 0%, rgba(31, 43, 69, 0.7) 100%)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+      <div className="glass-card" style={{ padding: '20px', background: 'var(--banner-bg)', border: '1px solid var(--banner-border)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ maxWidth: '680px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>

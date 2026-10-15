@@ -53,8 +53,8 @@ export default function TradingBehaviorView({ onSelectStock }) {
         className="glass-card"
         style={{
           padding: '24px',
-          background: 'linear-gradient(135deg, rgba(20, 28, 46, 0.95) 0%, rgba(30, 41, 67, 0.85) 100%)',
-          border: '1px solid rgba(139, 92, 246, 0.35)'
+          background: 'var(--banner-ai-bg)',
+          border: '1px solid var(--banner-ai-border)'
         }}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
@@ -75,7 +75,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Trading Behavior Analysis Agent</h2>
-                <span className="badge badge-outline" style={{ borderColor: 'rgba(139, 92, 246, 0.6)', color: '#c084fc' }}>
+                <span className="badge badge-outline" style={{ borderColor: 'rgba(139, 92, 246, 0.6)', color: '#7c3aed' }}>
                   AI Agent 4
                 </span>
               </div>
@@ -101,7 +101,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
           style={{
             marginTop: '16px',
             padding: '10px 14px',
-            background: 'rgba(15, 23, 42, 0.6)',
+            background: 'var(--bg-secondary)',
             borderRadius: 'var(--radius-sm)',
             border: '1px solid var(--border-subtle)',
             fontSize: '0.75rem',
@@ -320,7 +320,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
                       style={{
                         padding: '14px 16px',
                         borderRadius: 'var(--radius-sm)',
-                        background: 'rgba(15, 23, 42, 0.5)',
+                        background: 'var(--bg-elevated)',
                         border: '1px solid var(--border-subtle)',
                         display: 'flex',
                         flexDirection: 'column',
@@ -390,8 +390,8 @@ export default function TradingBehaviorView({ onSelectStock }) {
                         style={{
                           padding: '12px 14px',
                           borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(0, 208, 156, 0.05)',
-                          border: '1px solid rgba(0, 208, 156, 0.2)',
+                          background: 'var(--gain-bg)',
+                          border: '1px solid var(--gain-border)',
                           fontSize: '0.8rem',
                           color: 'var(--text-secondary)',
                           lineHeight: 1.5,
@@ -421,7 +421,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
                         style={{
                           padding: '16px',
                           borderRadius: 'var(--radius-sm)',
-                          background: 'rgba(15, 23, 42, 0.7)',
+                          background: 'var(--bg-elevated)',
                           border: '1px solid var(--border-subtle)',
                           display: 'flex',
                           flexDirection: 'column',
@@ -454,7 +454,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
 
               {/* Sources & Citations */}
               {sources.length > 0 && (
-                <div className="glass-card" style={{ padding: '16px 20px', background: 'rgba(10, 14, 23, 0.6)' }}>
+                <div className="glass-card" style={{ padding: '16px 20px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '8px' }}>
                     Verified Audit Citations
                   </div>
@@ -464,7 +464,7 @@ export default function TradingBehaviorView({ onSelectStock }) {
                         key={idx}
                         style={{
                           fontSize: '0.75rem',
-                          background: 'rgba(255, 255, 255, 0.04)',
+                          background: 'var(--bg-elevated)',
                           padding: '6px 12px',
                           borderRadius: 'var(--radius-sm)',
                           border: '1px solid var(--border-subtle)'

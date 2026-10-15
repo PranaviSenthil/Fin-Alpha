@@ -68,7 +68,7 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
     const getY = (p) => paddingTop + (1 - (p - minPrice) / finalRange) * (mainHeight - paddingTop);
 
     // Draw Price Grid lines
-    ctx.strokeStyle = '#1e293b';
+    ctx.strokeStyle = '#e2e8f0';
     ctx.lineWidth = 1;
     ctx.fillStyle = '#64748b';
     ctx.font = '10px Inter, monospace';
@@ -91,7 +91,7 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
       const x = getX(i);
       const volH = maxVolume > 0 ? (b.volume / maxVolume) * volumeHeight : 0;
       const isUp = b.close >= b.open;
-      ctx.fillStyle = isUp ? 'rgba(0, 208, 156, 0.25)' : 'rgba(235, 91, 60, 0.25)';
+      ctx.fillStyle = isUp ? 'rgba(5, 150, 105, 0.25)' : 'rgba(220, 38, 38, 0.25)';
       ctx.fillRect(x - barWidth / 2, volBaseY - volH, barWidth, volH);
     });
 
@@ -104,7 +104,7 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
         const yHigh = getY(b.high);
         const yLow = getY(b.low);
         const isUp = b.close >= b.open;
-        const color = isUp ? '#00d09c' : '#eb5b3c';
+        const color = isUp ? '#059669' : '#dc2626';
 
         // High-Low Wick
         ctx.strokeStyle = color;
@@ -129,14 +129,14 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       });
-      ctx.strokeStyle = '#3b82f6';
+      ctx.strokeStyle = '#2563eb';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Area gradient fill
       const grad = ctx.createLinearGradient(0, paddingTop, 0, mainBottom);
-      grad.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
-      grad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+      grad.addColorStop(0, 'rgba(37, 99, 235, 0.22)');
+      grad.addColorStop(1, 'rgba(37, 99, 235, 0.0)');
       ctx.lineTo(getX(bars.length - 1), mainBottom);
       ctx.lineTo(getX(0), mainBottom);
       ctx.closePath();
@@ -169,19 +169,19 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
       ctx.stroke();
     };
 
-    if (activeIndicators.sma20) drawIndLine('sma20', '#f59e0b', 1.5);
+    if (activeIndicators.sma20) drawIndLine('sma20', '#d97706', 1.5);
     if (activeIndicators.sma50) drawIndLine('sma50', '#8b5cf6', 1.5);
-    if (activeIndicators.ema20) drawIndLine('ema20', '#06b6d4', 1.5);
+    if (activeIndicators.ema20) drawIndLine('ema20', '#0284c7', 1.5);
     if (activeIndicators.bollinger) {
-      drawIndLine('bb_upper', 'rgba(234, 179, 8, 0.7)', 1);
-      drawIndLine('bb_middle', 'rgba(234, 179, 8, 0.4)', 1);
-      drawIndLine('bb_lower', 'rgba(234, 179, 8, 0.7)', 1);
+      drawIndLine('bb_upper', 'rgba(217, 119, 6, 0.7)', 1);
+      drawIndLine('bb_middle', 'rgba(217, 119, 6, 0.4)', 1);
+      drawIndLine('bb_lower', 'rgba(217, 119, 6, 0.7)', 1);
     }
 
     // 4. Draw Subchart (RSI or MACD)
     if (hasSubChart) {
       const subTop = height - subHeight;
-      ctx.strokeStyle = '#334155';
+      ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(paddingLeft, subTop);
@@ -193,14 +193,14 @@ export default function StockChart({ bars = [], indicators = {}, symbol = '', in
         const getRsiY = (v) => subTop + (1 - v / 100) * subHeight;
         
         // Draw 30 / 70 threshold lines
-        ctx.strokeStyle = 'rgba(235, 91, 60, 0.4)';
+        ctx.strokeStyle = 'rgba(220, 38, 38, 0.35)';
         ctx.beginPath();
         ctx.moveTo(paddingLeft, getRsiY(70));
         ctx.lineTo(width - paddingRight, getRsiY(70));
         ctx.stroke();
         ctx.fillText('70', width - paddingRight + 6, getRsiY(70) + 3);
 
-        ctx.strokeStyle = 'rgba(0, 208, 156, 0.4)';
+        ctx.strokeStyle = 'rgba(5, 150, 105, 0.35)';
         ctx.beginPath();
         ctx.moveTo(paddingLeft, getRsiY(30));
         ctx.lineTo(width - paddingRight, getRsiY(30));
