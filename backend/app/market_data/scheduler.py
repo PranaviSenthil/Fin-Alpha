@@ -14,10 +14,11 @@ async def start_market_scheduler():
     """
     logger.info("Market data background refresh scheduler started.")
     
-    # Run an initial lightweight refresh on startup
+    # Run an initial lightweight refresh in background executor
     try:
-        logger.info("Executing initial market quotes cache populate...")
-        market_data_service.refresh_universe_quotes(max_workers=5)
+        logger.info("Executing initial market quotes cache populate in executor...")
+        loop = asyncio.get_event_loop()
+        asyncio.wrap_future(loop.run_in_executor(None, market_data_service.refresh_universe_quotes, 5))
     except Exception as e:
         logger.warning(f"Initial market refresh encountered: {e}")
 

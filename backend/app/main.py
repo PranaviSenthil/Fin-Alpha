@@ -1,7 +1,10 @@
+import os
 import asyncio
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db, seed_master_data
@@ -41,11 +44,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="VibeFinance — Indian Stock Market & AI Investment Intelligence Platform",
     description="""
-    Comprehensive Indian stock market intelligence platform inspired by Zerodha Kite and INDmoney.
+    Institutional-grade Indian stock market intelligence and simulated paper-trading platform.
     Features:
-    - Exactly 100 stocks across exactly 10 sectors.
-    - Free development Yahoo Finance (yfinance) adapter with 5-minute refresh cadence and honest freshness status.
-    - Simulated paper-trading engine with virtual starting funds (₹10,00,000), double-entry cash ledger, and FIFO/weighted average cost accounting.
+    - 100 premier Indian equities across 10 distinct sectors.
+    - Automated market quote refresh cadence and verifiable data freshness status.
+    - Simulated paper-trading engine with virtual starting funds (₹10,00,000), double-entry cash ledger, and weighted cost accounting.
     - Interactive technical charting and indicators (SMA, EMA, RSI, MACD, Bollinger Bands).
     - AI-powered macro market pulse, company deep research, portfolio concentration risk audit, and behavioral trading analytics.
     """,
@@ -73,18 +76,6 @@ app.include_router(trading_router, prefix=settings.API_V1_STR)
 app.include_router(portfolio_router, prefix=settings.API_V1_STR)
 app.include_router(ai_router, prefix=settings.API_V1_STR)
 
-@app.get("/")
-def root():
-    return {
-        "service": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "status": "online",
-        "message": "VibeFinance Backend API is operational.",
-        "frontend_app": "http://localhost:5173",
-        "api_documentation": "http://127.0.0.1:8000/docs",
-        "health_check": "http://127.0.0.1:8000/health"
-    }
-
 @app.get("/health")
 def health_check():
     return {
@@ -93,6 +84,60 @@ def health_check():
         "version": settings.VERSION,
         "mode": "Simulated Paper Trading & Market Intelligence"
     }
+
+# Detect frontend static build directory for unified deployment
+FRONTEND_DIST_CANDIDATES = [
+    os.getenv("FRONTEND_DIST_DIR"),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "frontend_dist")),
+    os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "dist")),
+]
+
+dist_dir = None
+for candidate in FRONTEND_DIST_CANDIDATES:
+    if candidate and os.path.isdir(candidate) and os.path.isfile(os.path.join(candidate, "index.html")):
+        dist_dir = candidate
+        break
+
+if dist_dir:
+    logger.info(f"Serving frontend static build from: {dist_dir}")
+    assets_dir = os.path.join(dist_dir, "assets")
+    if os.path.isdir(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    @app.get("/")
+    async def serve_root_spa():
+        return FileResponse(os.path.join(dist_dir, "index.html"))
+
+    @app.get("/{full_path:path}")
+    async def serve_spa_or_file(full_path: str):
+        # Exclude API endpoints and OpenAPI docs from SPA fallback
+        if (
+            full_path.startswith("api/")
+            or full_path == "api"
+            or full_path.startswith("docs")
+            or full_path.startswith("redoc")
+            or full_path.startswith("openapi.json")
+            or full_path == "health"
+        ):
+            raise HTTPException(status_code=404, detail="Not Found")
+
+        target_file = os.path.join(dist_dir, full_path)
+        if full_path and os.path.isfile(target_file):
+            return FileResponse(target_file)
+        return FileResponse(os.path.join(dist_dir, "index.html"))
+else:
+    @app.get("/")
+    def root():
+        return {
+            "service": settings.PROJECT_NAME,
+            "version": settings.VERSION,
+            "status": "online",
+            "message": "VibeFinance Backend API is operational.",
+            "frontend_app": "http://localhost:5173",
+            "api_documentation": "/docs",
+            "health_check": "/health"
+        }
 
 if __name__ == "__main__":
     import uvicorn

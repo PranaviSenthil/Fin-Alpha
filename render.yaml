@@ -1,0 +1,17 @@
+services:
+  # VibeFinance All-in-One Full-Stack Web Service on Render Free Tier
+  - type: web
+    name: vibefinance
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash

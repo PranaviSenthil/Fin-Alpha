@@ -1,0 +1,12 @@
+node_modules
+.git
+.gitignore
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.vscode
+*.log
+backend/vibefinance.db

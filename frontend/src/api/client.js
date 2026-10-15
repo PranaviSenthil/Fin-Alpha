@@ -1,4 +1,5 @@
-const API_BASE = '/api/v1';
+const RAW_BASE = import.meta.env.VITE_API_BASE_URL || '';
+const API_BASE = (RAW_BASE.endsWith('/') ? RAW_BASE.slice(0, -1) : RAW_BASE) + '/api/v1';
 
 class ApiClient {
   constructor() {

@@ -52,6 +52,10 @@ def read_env_file_disk() -> Dict[str, str]:
                             # Strip brackets if user formatted as [API_KEY]
                             if v.startswith("[") and v.endswith("]"):
                                 v = v[1:-1].strip()
+                            # Strip duplicate variable prefix if user pasted KEY=value inside value
+                            while "=" in v and any(v.upper().startswith(p) for p in ("GEMINI_API_KEY=", "GEMINIAPIKEY=")):
+                                _, v = v.split("=", 1)
+                                v = v.strip().strip("'\"")
                             if k:
                                 env_vars[k] = v
             except Exception as e:
@@ -122,19 +126,31 @@ class Settings(BaseModel):
         file_vars = read_env_file_disk()
 
         def resolve_val(name: str) -> str:
-            # If explicitly set in environment, check that first
+            # If explicitly set in environment, os.environ is authoritative
             if name in os.environ:
-                env_val = os.environ.get(name, "").strip().strip("'\"[]")
-                return "" if is_placeholder_key(env_val) else env_val
+                env_val = os.environ[name].strip().strip("'\"[]")
+                if env_val and not is_placeholder_key(env_val):
+                    return env_val
+                return ""
 
             # Otherwise fall back to file on disk
             file_val = file_vars.get(name, "").strip().strip("'\"[]")
-            return "" if is_placeholder_key(file_val) else file_val
+            if not file_val and "_" in name:
+                no_under = name.replace("_", "")
+                file_val = file_vars.get(no_under, "").strip().strip("'\"[]")
+
+            if file_val and not is_placeholder_key(file_val):
+                return file_val
+
+            return ""
 
         keys: List[str] = []
 
         # 1. Multi-key list in GEMINI_API_KEYS
-        raw_list = os.environ.get("GEMINI_API_KEYS", "") or file_vars.get("GEMINI_API_KEYS", "")
+        if "GEMINI_API_KEYS" in os.environ:
+            raw_list = os.environ.get("GEMINI_API_KEYS", "")
+        else:
+            raw_list = file_vars.get("GEMINI_API_KEYS", "")
         if raw_list:
             for item in raw_list.replace(",", " ").replace("[", " ").replace("]", " ").split():
                 clean = item.strip().strip("'\"[]")

@@ -191,6 +191,14 @@ The application includes a zero-friction **"Instant Demo Login"** button in the 
 
 ---
 
+## Production Deployment
+Complete step-by-step guides for cloud deployment are available in [DEPLOYMENT.md](DEPLOYMENT.md):
+- **Render (Free Tier)**: 1-click blueprint via `render.yaml` or multi-stage `Dockerfile`.
+- **Split Hosting**: Vercel for React Frontend + Render for FastAPI Backend.
+- **Unified Single-Port Delivery**: FastAPI serves the built Vite React SPA from `/` while routing all API calls to `/api/v1/`.
+
+---
+
 ## Production & Legal Disclaimers
 1. **Market Data**: Market quotes, historical bars, and financial metrics are provided via `yfinance` for developmental and educational purposes. Data may be delayed or unavailable depending on upstream provider availability.
 2. **Paper Trading Only**: All trading features, orders, cash balances, and P&L statements are entirely simulated. No real money or exchange broker accounts are involved.
